@@ -2,18 +2,27 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+// Maximum range of bytes 
+# define MAX 4
+
+typedef struct {
+    uint8_t tag;
+    uint8_t info[];
+} cp_info;
+
 typedef struct {
     uint32_t magic;
     uint16_t minor_version;
     uint16_t major_version;
-
 } ClassFile;
 
-
+// fgetc -> usada para ler um unico caractere de um arquivo.
+//  Retorna o valor ASCII do caractere lido ou EOF se o final do arquivo for alcancado ou ocorrer um erro
 int main() {
     FILE *arquivo;
     const char *file_name = "Main.class";
-    unsigned char buffer[256];
+
+    unsigned char buffer[MAX];
     size_t lidos;
 
     arquivo = fopen(file_name, "rb");
