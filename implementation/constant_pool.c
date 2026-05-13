@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
-typedef CONSTANT_Class_info {
-    uint16_t name_index/
-} CONS
+typedef struct {
+    uint8_t tag;
+    uint16_t name_index;
+} CONSTANT_Class_Info;
+

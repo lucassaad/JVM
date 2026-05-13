@@ -25,6 +25,25 @@ typedef enum cp_tags {
 } cp_tags;
 
 
+// CONSTANT_Class_info
+// CONSTANT_Fieldref_info
+// CONSTANT_Methodref_info
+// CONSTANT_InterfaceMethodref_info
+// CONSTANT_String_info
+// CONSTANT_Integer_info
+// CONSTANT_Float_info
+// CONSTANT_Long_info
+// CONSTANT_Double_info
+// CONSTANT_NameAndType_info
+// CONSTANT_Utf8_info
+
+// CONSTANT_MethodHandle_info
+// CONSTANT_MethodType_info
+// CONSTANT_Dynamic_info
+// CONSTANT_InvokeDynamic_info
+// CONSTANT_Module_info
+// CONSTANT_Package_info
+
 // Constant Pool entry format
 typedef struct {
     uint8_t tag;
