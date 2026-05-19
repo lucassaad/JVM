@@ -7,19 +7,18 @@
 void* constant_pool_reader(cp_tags tag, FILE *file) {
     switch (tag) {
         case CONSTANT_Class: {
-                    
             CONSTANT_Class_info *entry = malloc(sizeof(CONSTANT_Class_info));
             entry->tag = tag;
-
+            
             if (fread(&entry->name_index, sizeof(entry->name_index), 1, file) != 1) {
                 perror("Error while reading constant_pool");
                 return NULL;
             }
             entry->name_index = byteswap_u2(entry->name_index);
-
+            
             return entry;
         }
-
+        
         case CONSTANT_Fieldref: {
             CONSTANT_Fieldref_info *entry = malloc(sizeof(CONSTANT_Fieldref_info));
             entry->tag = tag;
@@ -37,10 +36,10 @@ void* constant_pool_reader(cp_tags tag, FILE *file) {
                 return NULL;
             }
             entry->name_and_type_index = byteswap_u2(entry->name_and_type_index);
-
+            
             return entry;    
         }
-
+        
         case CONSTANT_Methodref: {
             CONSTANT_Methodref_info *entry = malloc(sizeof(CONSTANT_Methodref_info));
             entry->tag = tag;
@@ -58,7 +57,7 @@ void* constant_pool_reader(cp_tags tag, FILE *file) {
                 return NULL;
             }
             entry->name_and_type_index = byteswap_u2(entry->name_and_type_index);
-
+            
             return entry;    
         }
         
@@ -79,7 +78,7 @@ void* constant_pool_reader(cp_tags tag, FILE *file) {
                 return NULL;
             }
             entry->name_and_type_index = byteswap_u2(entry->name_and_type_index);
-    
+            
             return entry;    
         }
         
@@ -142,7 +141,7 @@ void* constant_pool_reader(cp_tags tag, FILE *file) {
                 return NULL;
             }
             entry->low_bytes = byteswap_u4(entry->low_bytes);
-
+            
             return entry;
         }
         
@@ -165,7 +164,7 @@ void* constant_pool_reader(cp_tags tag, FILE *file) {
             
             return entry;
         }
-
+        
         case CONSTANT_NameAndType: {
             CONSTANT_NameAndType_info *entry = malloc(sizeof(CONSTANT_NameAndType_info));
             entry->tag = tag;
@@ -198,12 +197,12 @@ void* constant_pool_reader(cp_tags tag, FILE *file) {
                 perror("Error while reading constant_pool");
                 return NULL;
             }
-
+            
             CONSTANT_Utf8_info *entry = malloc(sizeof(CONSTANT_Utf8_info) + length);
             entry->tag = tag;
             entry->length = length;
             memcpy(entry->bytes, bytes, length);
-
+            
             return entry;    
         }
         
@@ -221,7 +220,7 @@ void* constant_pool_reader(cp_tags tag, FILE *file) {
                 return NULL;
             }
             entry->reference_index = byteswap_u2(entry->reference_index);
-
+            
             return entry;
         }
         
@@ -253,10 +252,10 @@ void* constant_pool_reader(cp_tags tag, FILE *file) {
                 return NULL;
             }
             entry->name_and_type_index = byteswap_u2(entry->name_and_type_index);
-
+            
             return entry;
         }
-
+        
         case CONSTANT_InvokeDynamic: {
             CONSTANT_InvokeDynamic_info *entry = malloc(sizeof(CONSTANT_InvokeDynamic_info));
             entry->tag = tag;
@@ -272,10 +271,10 @@ void* constant_pool_reader(cp_tags tag, FILE *file) {
                 return NULL;
             }
             entry->name_and_type_index = byteswap_u2(entry->name_and_type_index);
-
+            
             return entry;
         }
-
+        
         case CONSTANT_Package: {
             CONSTANT_Package_info *entry = malloc(sizeof(CONSTANT_Package_info));
             entry->tag = tag;
@@ -288,11 +287,11 @@ void* constant_pool_reader(cp_tags tag, FILE *file) {
             
             return entry;
         }
-
+        
         case CONSTANT_Module: {
             CONSTANT_Module_info *entry = malloc(sizeof(CONSTANT_Module_info));
             entry->tag = tag;
-
+            
             if (fread(&entry->name_index, sizeof(entry->name_index), 1, file) != 1) {
                 perror("Error while reading constant_pool");
                 return NULL;
@@ -306,5 +305,3 @@ void* constant_pool_reader(cp_tags tag, FILE *file) {
             return NULL;
     }
 }
-
-
