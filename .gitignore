@@ -1,0 +1,7 @@
+# Pastas de build geradas pelo Makefile
+obj/
+bin/
+
+*.exe
+*.o
+*.out
