@@ -17,6 +17,7 @@ typedef struct {
     uint16_t major_version;
     uint16_t constant_pool_count;
     cp_info **constant_pool;
+    uint16_t access_flags;
     // As structs de fields, methods e attributes serão adicionadas aqui
 } ClassFile;
 
