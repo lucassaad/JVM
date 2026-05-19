@@ -12,6 +12,7 @@ int read_classfile(ClassFile *cf, FILE *file) {
     }
     cf->magic = byteswap_u4(cf->magic);
 
+    
     // Read 'minor_version'
     if (fread(&cf->minor_version, sizeof(cf->minor_version), 1, file) != 1) {
         perror("Erro ao ler 'minor_version'");
@@ -19,12 +20,14 @@ int read_classfile(ClassFile *cf, FILE *file) {
     }
     cf->minor_version = byteswap_u2(cf->minor_version);
 
+
     // Read 'major_version'
     if (fread(&cf->major_version, sizeof(cf->major_version), 1, file) != 1) {
         perror("Erro ao ler 'major_version'");
         return 1;
     }
     cf->major_version = byteswap_u2(cf->major_version);
+
 
     // CONSTANT_POOL_COUNT
     if (fread(&cf->constant_pool_count, sizeof(cf->constant_pool_count), 1, file) != 1) {
@@ -53,6 +56,22 @@ int read_classfile(ClassFile *cf, FILE *file) {
 
         if (tag == CONSTANT_Long || tag == CONSTANT_Double) i++; 
     }
+
+
+    // Read 'this_class'
+    if (fread(&cf->this_class, sizeof(cf->this_class), 1, file) != 1) {
+        perror("Erro ao ler 'this_class'");
+        return 1;
+    }
+    cf->this_class = byteswap_u2(cf->this_class);
+    
+    
+    // Read 'super_class'
+    if (fread(&cf->super_class, sizeof(cf->super_class), 1, file) != 1) {
+        perror("Erro ao ler 'super_class'");
+        return 1;
+    }
+    cf->super_class = byteswap_u2(cf->super_class);
 
     return 0;
 }
