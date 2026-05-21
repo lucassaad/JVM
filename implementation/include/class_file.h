@@ -7,7 +7,7 @@
 // Definição genérica interna de cada item do Pool
 typedef struct {
     uint8_t tag;
-    uint8_t info[];  
+    void *info; 
 } cp_info;
 
 // Estrutura do Atributo
