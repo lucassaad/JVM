@@ -2,6 +2,7 @@
 #define VIEWER_H
 
 #include "class_file.h"
+#include "constant_pool.h"
 
 // Funções principais de exibição
 void print_general_information(ClassFile *cf);
