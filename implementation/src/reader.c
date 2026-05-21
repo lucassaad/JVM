@@ -64,30 +64,6 @@ int read_classfile(ClassFile *cf, FILE *file) {
     }
     cf->access_flags = byteswap_u2(cf->access_flags);
 
-
-
-    // Read 'this_class'
-    if (fread(&cf->this_class, sizeof(cf->this_class), 1, file) != 1) {
-        perror("Erro ao ler 'this_class'");
-        return 1;
-    }
-    cf->this_class = byteswap_u2(cf->this_class);
-    
-    
-    // Read 'super_class'
-    if (fread(&cf->super_class, sizeof(cf->super_class), 1, file) != 1) {
-        perror("Erro ao ler 'super_class'");
-        return 1;
-    }
-    cf->super_class = byteswap_u2(cf->super_class);
-
-    // Read 'access_flags'
-    if (fread(&cf->access_flags, sizeof(cf->access_flags), 1, file) != 1) {
-        perror("Erro ao ler 'access_flags'");
-        return 1;
-    }
-    cf->access_flags = byteswap_u2(cf->access_flags);
-
     // Read 'this_class'
     if (fread(&cf->this_class, sizeof(cf->this_class), 1, file) != 1) {
         perror("Erro ao ler 'this_class'");
@@ -129,6 +105,60 @@ int read_classfile(ClassFile *cf, FILE *file) {
     } else {
         // Se a classe não implementar nenhuma interface
         cf->interfaces = NULL;
+    }
+
+    // Read 'field_count'
+    if (fread(&cf->fields_count, sizeof(cf->fields_count), 1, file) != 1) {
+        perror("Erro ao ler 'fields_count'");
+        return 1;
+    }
+    cf->fields_count = byteswap_u2(cf->fields_count);
+
+    // Read 'field_info'
+    if (cf->fields_count > 0) {
+        cf->fields = malloc(sizeof(field_info) * cf->fields_count);
+        if (cf->fields == NULL) {
+            perror("Erro ao alocar memória para fields");
+            return 1;
+        }
+
+        for (int i = 0; i < cf->fields_count; i++) {
+            fread(&cf->fields[i].access_flags, sizeof(uint16_t), 1, file);
+            cf->fields[i].access_flags = byteswap_u2(cf->fields[i].access_flags);
+
+            fread(&cf->fields[i].name_index, sizeof(uint16_t), 1, file);
+            cf->fields[i].name_index = byteswap_u2(cf->fields[i].name_index);
+
+            fread(&cf->fields[i].descriptor_index, sizeof(uint16_t), 1, file);
+            cf->fields[i].descriptor_index = byteswap_u2(cf->fields[i].descriptor_index);
+
+            fread(&cf->fields[i].attributes_count, sizeof(uint16_t), 1, file);
+            cf->fields[i].attributes_count = byteswap_u2(cf->fields[i].attributes_count);
+
+            // Leitura dos atributos do field
+            if (cf->fields[i].attributes_count > 0) {
+                cf->fields[i].attributes = malloc(sizeof(attribute_info) * cf->fields[i].attributes_count);
+                
+                for (int j = 0; j < cf->fields[i].attributes_count; j++) {
+                    fread(&cf->fields[i].attributes[j].attribute_name_index, sizeof(uint16_t), 1, file);
+                    cf->fields[i].attributes[j].attribute_name_index = byteswap_u2(cf->fields[i].attributes[j].attribute_name_index);
+
+                    fread(&cf->fields[i].attributes[j].attribute_length, sizeof(uint32_t), 1, file);
+                    cf->fields[i].attributes[j].attribute_length = byteswap_u4(cf->fields[i].attributes[j].attribute_length);
+
+                    if (cf->fields[i].attributes[j].attribute_length > 0) {
+                        cf->fields[i].attributes[j].info = malloc(cf->fields[i].attributes[j].attribute_length);
+                        fread(cf->fields[i].attributes[j].info, 1, cf->fields[i].attributes[j].attribute_length, file);
+                    } else {
+                        cf->fields[i].attributes[j].info = NULL;
+                    }
+                }
+            } else {
+                cf->fields[i].attributes = NULL;
+            }
+        }
+    } else {
+        cf->fields = NULL;
     }
     return 0;
 }
