@@ -43,6 +43,9 @@ void print_general_information(ClassFile *cf) {
     printf("Minor Version         : %d\n", cf->minor_version);
     printf("Major Version         : %d [%s]\n", cf->major_version, get_java_version_string(cf->major_version));
     printf("Constant Pool Count   : %d\n", cf->constant_pool_count);
+    printf("Access flags          : 0x%04x\n", cf->access_flags);
+    printf("This Class            : cp_info #%d\n", cf->this_class);
+    printf("Super Class           : cp_info #%d\n", cf->super_class);
     
     // Implementar demais campos
     printf("=======================================================\n");
