@@ -113,7 +113,7 @@ int read_classfile(ClassFile *cf, FILE *file) {
         return 1;
     }
     cf->fields_count = byteswap_u2(cf->fields_count);
-
+    
     // Read 'field_info'
     if (cf->fields_count > 0) {
         cf->fields = malloc(sizeof(field_info) * cf->fields_count);
@@ -121,20 +121,20 @@ int read_classfile(ClassFile *cf, FILE *file) {
             perror("Erro ao alocar memória para fields");
             return 1;
         }
-
+        
         for (int i = 0; i < cf->fields_count; i++) {
             fread(&cf->fields[i].access_flags, sizeof(uint16_t), 1, file);
             cf->fields[i].access_flags = byteswap_u2(cf->fields[i].access_flags);
-
+            
             fread(&cf->fields[i].name_index, sizeof(uint16_t), 1, file);
             cf->fields[i].name_index = byteswap_u2(cf->fields[i].name_index);
-
+            
             fread(&cf->fields[i].descriptor_index, sizeof(uint16_t), 1, file);
             cf->fields[i].descriptor_index = byteswap_u2(cf->fields[i].descriptor_index);
-
+            
             fread(&cf->fields[i].attributes_count, sizeof(uint16_t), 1, file);
             cf->fields[i].attributes_count = byteswap_u2(cf->fields[i].attributes_count);
-
+            
             // Leitura dos atributos do field
             if (cf->fields[i].attributes_count > 0) {
                 cf->fields[i].attributes = malloc(sizeof(attribute_info) * cf->fields[i].attributes_count);
@@ -142,10 +142,10 @@ int read_classfile(ClassFile *cf, FILE *file) {
                 for (int j = 0; j < cf->fields[i].attributes_count; j++) {
                     fread(&cf->fields[i].attributes[j].attribute_name_index, sizeof(uint16_t), 1, file);
                     cf->fields[i].attributes[j].attribute_name_index = byteswap_u2(cf->fields[i].attributes[j].attribute_name_index);
-
+                    
                     fread(&cf->fields[i].attributes[j].attribute_length, sizeof(uint32_t), 1, file);
                     cf->fields[i].attributes[j].attribute_length = byteswap_u4(cf->fields[i].attributes[j].attribute_length);
-
+                    
                     if (cf->fields[i].attributes[j].attribute_length > 0) {
                         cf->fields[i].attributes[j].info = malloc(cf->fields[i].attributes[j].attribute_length);
                         fread(cf->fields[i].attributes[j].info, 1, cf->fields[i].attributes[j].attribute_length, file);
@@ -159,6 +159,60 @@ int read_classfile(ClassFile *cf, FILE *file) {
         }
     } else {
         cf->fields = NULL;
+    }
+    
+    // Read 'methods_count'
+    if (fread(&cf->methods_count, sizeof(cf->methods_count), 1, file) != 1) {
+        perror("Erro ao ler 'methods_count'");
+        return 1;
+    }
+    cf->methods_count = byteswap_u2(cf->methods_count);
+
+    // Read 'method[methods_count]': method_info
+    if (cf->methods_count > 0) {
+        cf->methods = malloc(sizeof(field_info) * cf->methods_count);
+        if (cf->methods == NULL) {
+            perror("Erro ao alocar memória para methods");
+            return 1;
+        }
+
+        for (int i = 0; i < cf->methods_count; i++) {
+            fread(&cf->methods[i].access_flags, sizeof(uint16_t), 1, file);
+            cf->methods[i].access_flags = byteswap_u2(cf->methods[i].access_flags);
+            
+            fread(&cf->methods[i].name_index, sizeof(uint16_t), 1, file);
+            cf->methods[i].name_index = byteswap_u2(cf->methods[i].name_index);
+            
+            fread(&cf->methods[i].descriptor_index, sizeof(uint16_t), 1, file);
+            cf->methods[i].descriptor_index = byteswap_u2(cf->methods[i].descriptor_index);
+            
+            fread(&cf->methods[i].attributes_count, sizeof(uint16_t), 1, file);
+            cf->methods[i].attributes_count = byteswap_u2(cf->methods[i].attributes_count);
+            
+            // Leitura dos atributos do method
+            if (cf->methods[i].attributes_count > 0) {
+                cf->methods[i].attributes = malloc(sizeof(attribute_info) * cf->methods[i].attributes_count);
+                
+                for (int j = 0; j < cf->methods[i].attributes_count; j++) {
+                    fread(&cf->methods[i].attributes[j].attribute_name_index, sizeof(uint16_t), 1, file);
+                    cf->methods[i].attributes[j].attribute_name_index = byteswap_u2(cf->methods[i].attributes[j].attribute_name_index);
+                    
+                    fread(&cf->methods[i].attributes[j].attribute_length, sizeof(uint32_t), 1, file);
+                    cf->methods[i].attributes[j].attribute_length = byteswap_u4(cf->methods[i].attributes[j].attribute_length);
+                    
+                    if (cf->methods[i].attributes[j].attribute_length > 0) {
+                        cf->methods[i].attributes[j].info = malloc(cf->methods[i].attributes[j].attribute_length);
+                        fread(cf->methods[i].attributes[j].info, 1, cf->methods[i].attributes[j].attribute_length, file);
+                    } else {
+                        cf->methods[i].attributes[j].info = NULL;
+                    }
+                }
+            } else {
+                cf->methods[i].attributes = NULL;
+            }
+        }
+    } else {
+        cf->methods = NULL;
     }
     return 0;
 }
