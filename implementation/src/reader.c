@@ -50,8 +50,12 @@ int read_classfile(ClassFile *cf, FILE *file) {
             perror("Error while reading constant_pool");
             return 1;
         }
+
+        cp_info *cp_entry = malloc(sizeof(cp_info));
+        cp_entry->tag = tag;
+        cp_entry->info = entry;
         
-        cf->constant_pool[i] = entry;
+        cf->constant_pool[i] = cp_entry;
         
         if (tag == CONSTANT_Long || tag == CONSTANT_Double) i++; 
     }
