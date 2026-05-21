@@ -34,13 +34,11 @@ const char* get_java_version_string(uint16_t major_version) {
     }
 }
 
-void get_utf8_info_string(void *entry_void) {
+void print_utf8_info(void *entry_void) {
     CONSTANT_Utf8_info *entry = (CONSTANT_Utf8_info *) entry_void;
-    printf("TAG: %d\n", entry->tag);
-    printf("LENGTH: %d\n", entry->length);
-    printf("STRING: %.*s\n", entry->length, entry->bytes);
-    
-
+    printf("tag    :  %d\n", entry->tag);
+    printf("length :  %d\n", entry->length);
+    printf("string :  %.*s\n", entry->length, entry->bytes);
 
     return;
 }
@@ -61,14 +59,14 @@ void print_general_information(ClassFile *cf) {
     printf("Fields Count          : %d\n", cf->fields_count);
     printf("Methods Count         : %d\n", cf->methods_count);
 
+    // Display 'constant_utf8_info'
     for (int i = 1; i < cf->constant_pool_count; i++) {
-        printf("INDICE DA CONSTANT POOL: %d\n", i);
         cp_info *constant_info = cf->constant_pool[i];
         if (constant_info->tag == 1) {
-            get_utf8_info_string(constant_info->info);
+            printf("CONSTANT_Utf8_info - constant_pool[%d]\n", i);
+            print_utf8_info(constant_info->info);
         }
-        if (constant_info->tag == 5 || constant_info->tag == 6) i++;
-        
+        if (constant_info->tag == 5 || constant_info->tag == 6) i++;    
     }
     
     // Implementar demais campos
