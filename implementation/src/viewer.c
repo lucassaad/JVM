@@ -46,6 +46,9 @@ void print_general_information(ClassFile *cf) {
     printf("Access flags          : 0x%04x\n", cf->access_flags);
     printf("This Class            : cp_info #%d\n", cf->this_class);
     printf("Super Class           : cp_info #%d\n", cf->super_class);
+    printf("Interfaces Count      : %d\n", cf->interfaces_count);
+    printf("Fields Count          : %d\n", cf->fields_count);
+    printf("Methods Count         : %d\n", cf->methods_count);
     
     // Implementar demais campos
     printf("=======================================================\n");

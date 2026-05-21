@@ -26,6 +26,15 @@ typedef struct {
     attribute_info *attributes;
 } field_info;
 
+// Estrutura de um Field (Variável de Classe)
+typedef struct {
+    uint16_t access_flags;
+    uint16_t name_index;
+    uint16_t descriptor_index;
+    uint16_t attributes_count;
+    attribute_info *attributes;
+} method_info;
+
 // Estrutura principal do arquivo .class
 typedef struct {
     uint32_t magic;
@@ -40,6 +49,9 @@ typedef struct {
     uint16_t *interfaces;
     uint16_t fields_count;
     field_info *fields;
+    uint16_t methods_count;
+    method_info *methods;
+
     // As structs de fields, methods e attributes serão adicionadas aqui
 } ClassFile;
 
