@@ -23,6 +23,8 @@ int main() {
 
     // Executa a leitura
     read_classfile(cf, file);
+    if (check_constant_pool_references(cf) != 0) printf("erro ASJD AKSDJ ");
+    
 
     print_general_information(cf);
 

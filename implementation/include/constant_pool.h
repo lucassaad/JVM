@@ -2,6 +2,7 @@
 #define CONSTANT_POOL_H
 
 #include <stdint.h>
+#include "class_file.h"
 
 typedef struct CONSTANT_Class_info{
     uint8_t tag;
@@ -135,5 +136,6 @@ typedef enum cp_tags {
 } cp_tags;
 
 void* constant_pool_reader(cp_tags tag, FILE *file);
+int check_constant_pool_references(ClassFile *cf);
 
 #endif

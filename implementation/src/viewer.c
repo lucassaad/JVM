@@ -60,14 +60,14 @@ void print_general_information(ClassFile *cf) {
     printf("Methods Count         : %d\n", cf->methods_count);
 
     // Display 'constant_utf8_info'
-    for (int i = 1; i < cf->constant_pool_count; i++) {
-        cp_info *constant_info = cf->constant_pool[i];
-        if (constant_info->tag == 1) {
-            printf("CONSTANT_Utf8_info - constant_pool[%d]\n", i);
-            print_utf8_info(constant_info->info);
-        }
-        if (constant_info->tag == 5 || constant_info->tag == 6) i++;    
-    }
+    // for (int i = 1; i < cf->constant_pool_count; i++) {
+    //     cp_info *constant_info = cf->constant_pool[i];
+    //     if (constant_info->tag == 1) {
+    //         printf("CONSTANT_Utf8_info - constant_pool[%d]\n", i);
+    //         print_utf8_info(constant_info->info);
+    //     }
+    //     if (constant_info->tag == 5 || constant_info->tag == 6) i++;    
+    // }
     
     // Implementar demais campos
     printf("=======================================================\n");

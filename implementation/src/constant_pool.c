@@ -317,191 +317,276 @@ int check_constant_pool_references(ClassFile *cf) {
         cp_tags tag = entry->tag;
         switch (tag) 
         {
-        case CONSTANT_Class: {
-            CONSTANT_Class_info *info = (CONSTANT_Class_info *) entry->info;
-        // Valida 'name_index'
-            // 0 < name_index <= constant_pool_count
-            if (info->name_index < 1 || info->name_index > cf->constant_pool_count) {
-                perror("'name_index' da CONSTANT_Class_info faz referencia a um indice invalido");
-                return 1;
-            }
-            // constant_pool[name_index] -> CONSTANT_Utf8_info
-            cp_info *referenced_entry = (cp_info *) cf->constant_pool[info->name_index];
-            if (referenced_entry->tag != CONSTANT_Utf8) {
-                perror("'name_index' da CONSTANT_Class_info não faz referencia a CONTANT_Utf8");
-                return 1;
-            }
-            break;
-        }
-
-        case CONSTANT_Fieldref: {
-            CONSTANT_Fieldref_info *info = (CONSTANT_Fieldref_info *) entry->info;
-    
-        // Valida 'class_index': mey be either a class or inteface type
-            // 0 < class_index < constant_pool_count
-            if (info->class_index < 1 || info->class_index > cf->constant_pool_count) {
-                perror("'class_index' da CONSTANT_Fieldref_info faz referencia a um indice invalido");
-                return 1;
-            }            
-            // constant_pool[class_index] -> CONSTANT_Class_info
-            cp_info *referenced_entry = (cp_info *) cf->constant_pool[info->class_index];
-            if (referenced_entry->tag != CONSTANT_Class) {
-                perror("'class_index' da CONSTANT_Fieldref_info não faz referencia a CONSTANT_Class");
-                return 1;
-            }
-        // Valida 'name_and_type_index': descriptor must be a field descriptor 
-            // 0 < name_and_type_index < constant_pool_count
-            if (info->name_and_type_index < 1 || info->name_and_type_index > cf->constant_pool_count) {
-                perror("'name_and_type_index' da CONSTANT_Fieldref_info faz referencia a um indice invalido");
-                return 1;
-            }            
-            // constant_pool[name_and_type_index] -> CONSTANT_Class_info
-            cp_info *referenced_entry = (cp_info *) cf->constant_pool[info->name_and_type_index];
-            if (referenced_entry->tag != CONSTANT_NameAndType) {
-                perror("'name_and_type_index' da CONSTANT_Fieldref_info não faz referencia a CONSTANT_NameAndType");
-                return 1;
-            }
-            break;
-        }
-
-        case CONSTANT_Methodref: {
-            CONSTANT_Methodref_info *info = (CONSTANT_Methodref_info *) entry->info;
-    
-        // Valida 'class_index': should be a class
-            // 0 < class_index < constant_pool_count
-            if (info->class_index < 1 || info->class_index > cf->constant_pool_count) {
-                perror("'class_index' da CONSTANT_Methodref_info faz referencia a um indice invalido");
-                return 1;
-            }            
-            // constant_pool[class_index] -> CONSTANT_Class_info
-            cp_info *referenced_entry = (cp_info *) cf->constant_pool[info->class_index];
-            if (referenced_entry->tag != CONSTANT_Class) {
-                perror("'class_index' da CONSTANT_Methodref_info não faz referencia a CONSTANT_Class");
-                return 1;
-            }
-        // Valida 'name_and_type_index': descriptor must be a method descriptor 
-            // 0 < name_and_type_index < constant_pool_count
-            if (info->name_and_type_index < 1 || info->name_and_type_index > cf->constant_pool_count) {
-                perror("'name_and_type_index' da CONSTANT_Methodref_info faz referencia a um indice invalido");
-                return 1;
-            }            
-            // constant_pool[name_and_type_index] -> CONSTANT_Class_info
-            cp_info *referenced_entry = (cp_info *) cf->constant_pool[info->name_and_type_index];
-            if (referenced_entry->tag != CONSTANT_NameAndType) {
-                perror("'name_and_type_index' da CONSTANT_Methodref_info não faz referencia a CONSTANT_NameAndType");
-                return 1;
-            }
-            break;
-        }
-
-        case CONSTANT_InterfaceMethodref: {
-            CONSTANT_InterfaceMethodref_info *info = (CONSTANT_InterfaceMethodref_info *) entry->info;
-    
-        // Valida 'class_index': should be an interface
-            // 0 < class_index < constant_pool_count
-            if (info->class_index < 1 || info->class_index > cf->constant_pool_count) {
-                perror("'class_index' da CONSTANT_InterfaceMethodref_info faz referencia a um indice invalido");
-                return 1;
-            }            
-            // constant_pool[class_index] -> CONSTANT_Class_info
-            cp_info *referenced_entry = (cp_info *) cf->constant_pool[info->class_index];
-            if (referenced_entry->tag != CONSTANT_Class) {
-                perror("'class_index' da CONSTANT_InterfaceMethodref_info não faz referencia a CONSTANT_Class");
-                return 1;
-            }
-        // Valida 'name_and_type_index'
-            // 0 < name_and_type_index < constant_pool_count
-            if (info->name_and_type_index < 1 || info->name_and_type_index > cf->constant_pool_count) {
-                perror("'name_and_type_index' da CONSTANT_InterfaceMethodref_info faz referencia a um indice invalido");
-                return 1;
-            }            
-            // constant_pool[name_and_type_index] -> CONSTANT_Class_info
-            cp_info *referenced_entry = (cp_info *) cf->constant_pool[info->name_and_type_index];
-            if (referenced_entry->tag != CONSTANT_NameAndType) {
-                perror("'name_and_type_index' da CONSTANT_InterfaceMethodref_info não faz referencia a CONSTANT_NameAndType");
-                return 1;
-            }
-            break;
-        }
-
-        case CONSTANT_String: {
-            CONSTANT_String_info *info = (CONSTANT_String_info *) entry->info;
-    
-        // Valida 'string_index': should be an interface
-            // 0 < string_index < constant_pool_count
-            if (info->string_index < 1 || info->string_index > cf->constant_pool_count) {
-                perror("'string_index' da CONSTANT_String_info faz referencia a um indice invalido");
-                return 1;
-            }            
-            // constant_pool[string_index] -> CONSTANT_Utf8_info
-            cp_info *referenced_entry = (cp_info *) cf->constant_pool[info->string_index];
-            if (referenced_entry->tag != CONSTANT_Utf8) {
-                perror("'string_index' da CONSTANT_String_info não faz referencia a CONSTANT_Utf8");
-                return 1;
-            }
-            break;
-        }
-
-        // nao referenciam outra entrada
-        case CONSTANT_Integer: break;
-        case CONSTANT_Float: break;
-        case CONSTANT_Long: break;
-        case CONSTANT_Double: break;
-        
-        case CONSTANT_NameAndType:{
-            CONSTANT_NameAndType_info *info = (CONSTANT_NameAndType_info *) entry;
-        // Valida 'name_index'
-            // 0 < name_index <= constant_pool_count
-            if (info->name_index < 1 || info->name_index > cf->constant_pool_count) {
-                perror("'name_index' da CONSTANT_NameAndType faz referencia a um indice invalido");
-                return 1;
-            }
-            // constant_pool[name_index] -> CONSTANT_Utf8_info
-            cp_info *referenced_entry = (cp_info *) cf->constant_pool[info->name_index];
-            if (referenced_entry->tag != CONSTANT_Utf8) {
-                perror("'name_index' da CONSTANT_NameAndType não faz referencia a CONTANT_Utf8");
-                return 1;
-            }
-        // Valida 'descriptor_index'
-            // 0 < descriptor_index <= constant_pool_count
-            if (info->descriptor_index < 1 || info->descriptor_index > cf->constant_pool_count) {
-                perror("'descriptor_index' da CONSTANT_NameAndType faz referencia a um indice invalido");
-                return 1;
-            }
-            // constant_pool[descriptor_index] -> CONSTANT_Utf8_info
-            cp_info *referenced_entry = (cp_info *) cf->constant_pool[info->descriptor_index];
-            if (referenced_entry->tag != CONSTANT_Utf8) {
-                perror("'descriptor_index' da CONSTANT_NameAndType não faz referencia a CONTANT_Utf8");
-                return 1;
-            }
-            break;
-        }
-
-        case CONSTANT_Utf8: {
-        // valida 'bytes'
-            // no byte may have value 0 and may not lie in the range 0xf0 - 0xff
-            CONSTANT_Utf8_info *info = (CONSTANT_Utf8_info *) entry;
-            for (int j = 0; j < info->length; j++) {
-                if (info->bytes[j] == 0) {
-                    perror("byte com o valor 0");
+            case CONSTANT_Class: {
+                CONSTANT_Class_info *info = (CONSTANT_Class_info *) entry->info;
+            // Valida 'name_index'
+                // 0 < name_index <= constant_pool_count
+                if (info->name_index < 1 || info->name_index > cf->constant_pool_count) {
+                    perror("'name_index' da CONSTANT_Class_info faz referencia a um indice invalido");
                     return 1;
                 }
-                if(info->bytes[j] >= 0xf0) {
-                    perror("byte na faixa 0xf0 - 0x00");
+                // constant_pool[name_index] -> CONSTANT_Utf8_info
+                cp_info *referenced_entry = (cp_info *) cf->constant_pool[info->name_index];
+                if (referenced_entry->tag != CONSTANT_Utf8) {
+                    perror("'name_index' da CONSTANT_Class_info não faz referencia a CONTANT_Utf8");
                     return 1;
                 }
+                break;
             }
-            break;
-        }
 
-        case CONSTANT_MethodHandle: {
-            CONSTANT_MethodHandle_info *info = (CONSTANT)
-        }
-
+            case CONSTANT_Fieldref: {
+                CONSTANT_Fieldref_info *info = (CONSTANT_Fieldref_info *) entry->info;
         
-        default:
-            break;
-        }
+            // Valida 'class_index': mey be either a class or inteface type
+                // 0 < class_index < constant_pool_count
+                if (info->class_index < 1 || info->class_index > cf->constant_pool_count) {
+                    perror("'class_index' da CONSTANT_Fieldref_info faz referencia a um indice invalido");
+                    return 1;
+                }            
+                // constant_pool[class_index] -> CONSTANT_Class_info
+                cp_info *referenced_entry = (cp_info *) cf->constant_pool[info->class_index];
+                if (referenced_entry->tag != CONSTANT_Class) {
+                    perror("'class_index' da CONSTANT_Fieldref_info não faz referencia a CONSTANT_Class");
+                    return 1;
+                }
+            // Valida 'name_and_type_index': descriptor must be a field descriptor 
+                // 0 < name_and_type_index < constant_pool_count
+                if (info->name_and_type_index < 1 || info->name_and_type_index > cf->constant_pool_count) {
+                    perror("'name_and_type_index' da CONSTANT_Fieldref_info faz referencia a um indice invalido");
+                    return 1;
+                }            
+                // constant_pool[name_and_type_index] -> CONSTANT_Class_info
+                referenced_entry = (cp_info *) cf->constant_pool[info->name_and_type_index];
+                if (referenced_entry->tag != CONSTANT_NameAndType) {
+                    perror("'name_and_type_index' da CONSTANT_Fieldref_info não faz referencia a CONSTANT_NameAndType");
+                    return 1;
+                }
+                break;
+            }
+
+            case CONSTANT_Methodref: {
+                CONSTANT_Methodref_info *info = (CONSTANT_Methodref_info *) entry->info;
+        
+            // Valida 'class_index': should be a class
+                // 0 < class_index < constant_pool_count
+                if (info->class_index < 1 || info->class_index > cf->constant_pool_count) {
+                    perror("'class_index' da CONSTANT_Methodref_info faz referencia a um indice invalido");
+                    return 1;
+                }            
+                // constant_pool[class_index] -> CONSTANT_Class_info
+                cp_info *referenced_entry = (cp_info *) cf->constant_pool[info->class_index];
+                if (referenced_entry->tag != CONSTANT_Class) {
+                    perror("'class_index' da CONSTANT_Methodref_info não faz referencia a CONSTANT_Class");
+                    return 1;
+                }
+            // Valida 'name_and_type_index': descriptor must be a method descriptor 
+                // 0 < name_and_type_index < constant_pool_count
+                if (info->name_and_type_index < 1 || info->name_and_type_index > cf->constant_pool_count) {
+                    perror("'name_and_type_index' da CONSTANT_Methodref_info faz referencia a um indice invalido");
+                    return 1;
+                }            
+                // constant_pool[name_and_type_index] -> CONSTANT_Class_info
+                referenced_entry = (cp_info *) cf->constant_pool[info->name_and_type_index];
+                if (referenced_entry->tag != CONSTANT_NameAndType) {
+                    perror("'name_and_type_index' da CONSTANT_Methodref_info não faz referencia a CONSTANT_NameAndType");
+                    return 1;
+                }
+                break;
+            }
+
+            case CONSTANT_InterfaceMethodref: {
+                CONSTANT_InterfaceMethodref_info *info = (CONSTANT_InterfaceMethodref_info *) entry->info;
+        
+            // Valida 'class_index': should be an interface
+                // 0 < class_index < constant_pool_count
+                if (info->class_index < 1 || info->class_index > cf->constant_pool_count) {
+                    perror("'class_index' da CONSTANT_InterfaceMethodref_info faz referencia a um indice invalido");
+                    return 1;
+                }            
+                // constant_pool[class_index] -> CONSTANT_Class_info
+                cp_info *referenced_entry = (cp_info *) cf->constant_pool[info->class_index];
+                if (referenced_entry->tag != CONSTANT_Class) {
+                    perror("'class_index' da CONSTANT_InterfaceMethodref_info não faz referencia a CONSTANT_Class");
+                    return 1;
+                }
+            // Valida 'name_and_type_index'
+                // 0 < name_and_type_index < constant_pool_count
+                if (info->name_and_type_index < 1 || info->name_and_type_index > cf->constant_pool_count) {
+                    perror("'name_and_type_index' da CONSTANT_InterfaceMethodref_info faz referencia a um indice invalido");
+                    return 1;
+                }            
+                // constant_pool[name_and_type_index] -> CONSTANT_Class_info
+                referenced_entry = (cp_info *) cf->constant_pool[info->name_and_type_index];
+                if (referenced_entry->tag != CONSTANT_NameAndType) {
+                    perror("'name_and_type_index' da CONSTANT_InterfaceMethodref_info não faz referencia a CONSTANT_NameAndType");
+                    return 1;
+                }
+                break;
+            }
+
+            case CONSTANT_String: {
+                CONSTANT_String_info *info = (CONSTANT_String_info *) entry->info;
+        
+            // Valida 'string_index': should be an interface
+                // 0 < string_index < constant_pool_count
+                if (info->string_index < 1 || info->string_index > cf->constant_pool_count) {
+                    perror("'string_index' da CONSTANT_String_info faz referencia a um indice invalido");
+                    return 1;
+                }            
+                // constant_pool[string_index] -> CONSTANT_Utf8_info
+                cp_info *referenced_entry = (cp_info *) cf->constant_pool[info->string_index];
+                if (referenced_entry->tag != CONSTANT_Utf8) {
+                    perror("'string_index' da CONSTANT_String_info não faz referencia a CONSTANT_Utf8");
+                    return 1;
+                }
+                break;
+            }
+
+            // nao referenciam outra entrada
+            case CONSTANT_Integer: break;
+            case CONSTANT_Float: break;
+            case CONSTANT_Long: break;
+            case CONSTANT_Double: break;
+            
+            case CONSTANT_NameAndType:{
+                CONSTANT_NameAndType_info *info = (CONSTANT_NameAndType_info *) entry;
+            // Valida 'name_index'
+                // 0 < name_index <= constant_pool_count
+                if (info->name_index < 1 || info->name_index > cf->constant_pool_count) {
+                    perror("'name_index' da CONSTANT_NameAndType faz referencia a um indice invalido");
+                    return 1;
+                }
+                // constant_pool[name_index] -> CONSTANT_Utf8_info
+                cp_info *referenced_entry = (cp_info *) cf->constant_pool[info->name_index];
+                if (referenced_entry->tag != CONSTANT_Utf8) {
+                    perror("'name_index' da CONSTANT_NameAndType não faz referencia a CONTANT_Utf8");
+                    return 1;
+                }
+                // Valida 'descriptor_index'
+                // 0 < descriptor_index <= constant_pool_count
+                if (info->descriptor_index < 1 || info->descriptor_index > cf->constant_pool_count) {
+                    perror("'descriptor_index' da CONSTANT_NameAndType faz referencia a um indice invalido");
+                    return 1;
+                }
+                // constant_pool[descriptor_index] -> CONSTANT_Utf8_info
+                referenced_entry = (cp_info *) cf->constant_pool[info->descriptor_index];
+                if (referenced_entry->tag != CONSTANT_Utf8) {
+                    perror("'descriptor_index' da CONSTANT_NameAndType não faz referencia a CONTANT_Utf8");
+                    return 1;
+                }
+                break;
+            }
+            
+            case CONSTANT_Utf8: {
+                // valida 'bytes'
+                // no byte may have value 0 and may not lie in the range 0xf0 - 0xff
+                CONSTANT_Utf8_info *info = (CONSTANT_Utf8_info *) entry;
+                for (int j = 0; j < info->length; j++) {
+                    if (info->bytes[j] == 0) {
+                        perror("byte com o valor 0");
+                        return 1;
+                    }
+                    if(info->bytes[j] >= 0xf0) {
+                        perror("byte na faixa 0xf0 - 0x00");
+                        return 1;
+                    }
+                }
+                break;
+            }
+            
+            case CONSTANT_MethodHandle: {
+                CONSTANT_MethodHandle_info *info = (CONSTANT_MethodHandle_info *) entry;
+            // valida 'reference_kind'
+                if (info->reference_kind < 1 || info->reference_kind > 9) {
+                        perror("valor invalido de 'reference_kind'");
+                        return 1;
+                    }
+            // valida 'reference_index'
+                // 0 < reference_index <= constant_pool_count
+                if (info->reference_index < 1 || info->reference_index > cf->constant_pool_count) {
+                    perror("'reference_index' da CONSTANT_MethodHandle_info faz referencia a um indice invalido");
+                    return 1;
+                }
+                switch (info->reference_index) {
+                    case 1:     // REF_getField
+                    case 2:     // REF_getStatic
+                    case 3:     // REF_putField
+                    case 4: {   // REF_putStatic
+                        cp_info *referenced_info = (cp_info *) cf->constant_pool[info->reference_index];
+                        if (referenced_info->tag != CONSTANT_Fieldref) {
+                            perror("'reference_index' da CONSTANT_MethodHandle nao faz referencia a CONSTANT_Fieldref");
+                            return 1;
+                        }
+                        break;
+                    }
+                    case 5:     // REF_invokeVirtual
+                    case 8: {   // REF_newInvokeSpecial
+                        cp_info *referenced_info = (cp_info *) cf->constant_pool[info->reference_index];
+                        if (referenced_info->tag != CONSTANT_Methodref) {
+                            perror("'reference_index' da CONSTANT_MethodHandle nao faz referencia a CONSTANT_Methodref");
+                            return 1;
+                        }
+                        break;
+                    }
+                    case 6:     // REF_invokeStatic
+                    case 7: {   // REF_invokeSpecial
+                        // Version less than 52.0
+                        cp_info *referenced_info = (cp_info *) cf->constant_pool[info->reference_index];
+                        if (cf->major_version < 52) {
+                            if (referenced_info->tag != CONSTANT_Methodref) {
+                                perror("'reference_index' da CONSTANT_MethodHandle nao faz referencia a CONSTANT_Methodref");
+                                return 1;
+                            }
+                        }
+                        else {
+                            if (referenced_info->tag != CONSTANT_Methodref && referenced_info->tag != CONSTANT_InterfaceMethodref) {
+                                perror("'reference_index' da CONSTANT_MethodHandle nao faz referencia a classe certa");
+                                return 1;
+                            }
+                        }
+                        break;
+                    }
+                    case 9: {   // REF_invokeInterface
+                        cp_info *referenced_info = (cp_info *) cf->constant_pool[info->reference_index];
+                        if (referenced_info->tag != CONSTANT_InterfaceMethodref) {
+                                perror("'reference_index' da CONSTANT_MethodHandle nao faz referencia CONSTANT_InterfaceMethodref");
+                                return 1;
+                            }
+                        break;
+                    }
+                } 
+                break;      
+            }
+
+            case CONSTANT_MethodType: {
+                CONSTANT_MethodType_info *info = (CONSTANT_MethodType_info *) entry;
+            // valida 'descriptor_index'
+                // 0 < descriptor_index <= constant_pool_count
+                if (info->descriptor_index < 1 || info->descriptor_index > cf->constant_pool_count) {
+                    perror("'descriptor_index' da CONSTANT_MethodType faz referencia a um indice invalido");
+                    return 1;
+                }
+                // constant_pool[descriptor_index] -> CONSTANT_Utf8_info
+                cp_info *referenced_entry = (cp_info *) cf->constant_pool[info->descriptor_index];
+                if (referenced_entry->tag != CONSTANT_Utf8) {
+                    perror("'descriptor_index' da CONSTANT_MethodType não faz referencia a CONTANT_Utf8");
+                    return 1;
+                }
+                break;
+            }
+
+            case CONSTANT_Dynamic:
+            case CONSTANT_InvokeDynamic:
+                // todo
+                break;
+            case CONSTANT_Module:
+                //todo
+                break;
+            case CONSTANT_Package:
+                // todo    
+                break;
+        }  
 
     }
+    return 0;
 }
