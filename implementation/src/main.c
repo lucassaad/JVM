@@ -26,6 +26,10 @@ int main() {
 
     print_general_information(cf);
 
+    print_constant_pool(cf);
+    
+    print_fields(cf);
+
     // Limpeza (temporária, até implementarem o deep free no utils.c)
     // 1. libera cada entrada da constant pool
     for (int i = 1; i < cf->constant_pool_count; i++) {
