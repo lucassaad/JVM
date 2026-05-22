@@ -260,6 +260,18 @@ void print_fields(ClassFile *cf) {
         printf("[%02d] Nome: %.*s\n", i, name->length, name->bytes);
         printf("     Tipo: %.*s\n", desc->length, desc->bytes);
         printf("     Flags de Acesso: 0x%04X\n", field->access_flags);
-        printf("     Atributos: %d\n\n", field->attributes_count);
+        printf("     Atributos: %d\n", field->attributes_count);
+
+        for (int j = 0; j < field->attributes_count; j++) {
+            attribute_info *attr = &field->attributes[j];
+
+            // Busca o nome do atributo na Constant Pool
+            CONSTANT_Utf8_info *attr_name = (CONSTANT_Utf8_info *)cf->constant_pool[attr->attribute_name_index];
+
+            // Imprime cada atributo
+            printf("       -> Atributo [%d]: %.*s (Tamanho: %u bytes)\n", j, attr_name->length, attr_name->bytes, attr->attribute_length);
+        }
+        
+        printf("\n"); // Pula uma linha no final para separar o próximo field
     }
 }
