@@ -34,6 +34,32 @@ const char* get_java_version_string(uint16_t major_version) {
     }
 }
 
+void print_class_name(Class *cf, uint16_t class_index) {
+    if (class_index == 0 || class_index >= cf->constant_pool_count) {
+        printf("Índice de classe inválido: %d\n", class_index);
+        return;
+    }
+
+    cp_info *cp_entry = cf->constant_poll[class_index];
+    if (cp_entry != NULL && cp_entry->tag == 7) {
+        uint16_t name_index = *(uint16_t *)cp_entry->info;
+        print_resolved_utf8(cf, name_index);
+    } else {
+        printf("Entrada de classe inválida no constant pool: índice %d\n", class_index
+}
+
+void print_class_access_flags(uint16_t access_flags) {
+    printf("Access Flags: 0x%04x\n", access_flags);
+    if (access_flags & 0x0001) printf(" - public\n");
+    if (access_flags & 0x0010) printf(" - final\n");
+    if (access_flags & 0x0020) printf(" - super\n");
+    if (access_flags & 0x0200) printf(" - interface\n");
+    if (access_flags & 0x0400) printf(" - abstract\n");
+    if (access_flags & 0x1000) printf(" - synthetic\n");
+    if (access_flags & 0x2000) printf(" - annotation\n");
+    if (access_flags & 0x4000) printf(" - enum\n");
+}
+
 void print_utf8_info(void *entry_void) {
     CONSTANT_Utf8_info *entry = (CONSTANT_Utf8_info *) entry_void;
     printf("tag    :  %d\n", entry->tag);
