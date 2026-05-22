@@ -3,6 +3,8 @@
 #include "class_file.h"
 #include "reader.h"
 #include "viewer.h"
+#include "code_attribute.h"
+#include <string.h>
 
 int main() {
     FILE *file;
@@ -47,7 +49,37 @@ int main() {
         perror("Erro ao fechar o file");
         return 1;
     }
+    printf("\n===== CODE ATTRIBUTES =====\n");
 
+    for (int i = 0; i < cf->methods_count; i++) {
+
+        method_info *method = &cf->methods[i];
+
+        for (int j = 0; j < method->attributes_count; j++) {
+
+            attribute_info *attr = &method->attributes[j];
+
+            uint16_t name_index = attr->attribute_name_index;
+
+            cp_info *cp_entry = cf->constant_pool[name_index];
+
+            CONSTANT_Utf8_info *utf8 =
+                (CONSTANT_Utf8_info*) cp_entry->info;
+
+            if (
+                utf8->length == 4 &&
+                strncmp((char*)utf8->bytes, "Code", 4) == 0
+            ) {
+
+                printf("\nMethod %d - Code Attribute\n", i);
+
+                Code_attribute *code =
+                    (Code_attribute*) attr->info;
+
+                print_code_attribute(code);
+            }
+        }
+    }
 
 
     return 0;
