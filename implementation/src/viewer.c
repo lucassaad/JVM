@@ -235,3 +235,31 @@ void print_constant_pool(ClassFile *cf) {
         }
     }
 }
+
+void print_fields(ClassFile *cf) {
+    printf("=== Fields (%d entradas) ===\n", cf->fields_count);
+
+    if (cf->fields_count == 0) {
+        printf("  (nenhum field)\n");
+        return;
+    }
+
+    // O vetor de fields começa no índice 0
+    for (int i = 0; i < cf->fields_count; i++) {
+        
+        // Pega o field atual do laço
+        field_info *field = &cf->fields[i];
+
+        // Vai na Constant Pool buscar o Nome da variável
+        CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[field->name_index];
+        
+        // Vai na Constant Pool buscar o Tipo (Descriptor) da variável
+        CONSTANT_Utf8_info *desc = (CONSTANT_Utf8_info *)cf->constant_pool[field->descriptor_index];
+
+        // Exibe de forma formatada e limpa
+        printf("[%02d] Nome: %.*s\n", i, name->length, name->bytes);
+        printf("     Tipo: %.*s\n", desc->length, desc->bytes);
+        printf("     Flags de Acesso: 0x%04X\n", field->access_flags);
+        printf("     Atributos: %d\n\n", field->attributes_count);
+    }
+}
