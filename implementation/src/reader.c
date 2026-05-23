@@ -3,6 +3,35 @@
 #include "reader.h"
 #include "utils.h"
 
+attribute_info* read_attributes_array(uint16_t count, FILE *file) {
+    if (count == 0) return NULL;
+
+    attribute_info *attrs = malloc(sizeof(attribute_info) * count);
+    if (attrs == NULL) {
+        perror("Erro ao alocar memória para array de atributos");
+        return NULL;
+    }
+
+    for (int j = 0; j < count; j++) {
+        fread(&attrs[j].attribute_name_index, sizeof(uint16_t), 1, file);
+        attrs[j].attribute_name_index = byteswap_u2(attrs[j].attribute_name_index);
+        
+        fread(&attrs[j].attribute_length, sizeof(uint32_t), 1, file);
+        attrs[j].attribute_length = byteswap_u4(attrs[j].attribute_length);
+        
+        if (attrs[j].attribute_length > 0) {
+            attrs[j].info = malloc(attrs[j].attribute_length);
+            if (attrs[j].info == NULL) {
+                perror("Erro ao alocar memória para dados do atributo");
+                return NULL;
+            }
+            fread(attrs[j].info, 1, attrs[j].attribute_length, file);
+        } else {
+            attrs[j].info = NULL;
+        }
+    }
+    return attrs;
+}
 
 int read_classfile(ClassFile *cf, FILE *file) {
     // Read 'magic'
@@ -218,5 +247,13 @@ int read_classfile(ClassFile *cf, FILE *file) {
     } else {
         cf->methods = NULL;
     }
+
+    if (fread(&cf->attributes_count, sizeof(cf->attributes_count), 1, file) != 1) {
+        perror("Erro ao ler 'attributes_count' global");
+        return 1;
+    }
+    cf->attributes_count = byteswap_u2(cf->attributes_count);
+
+    cf->attributes = read_attributes_array(cf->attributes_count, file);
     return 0;
 }
