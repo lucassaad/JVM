@@ -5,6 +5,7 @@
 #include "viewer.h"
 #include "code_attribute.h"
 #include "instruction_reader.h"
+#include "constant_pool.h"
 #include <string.h>
 
 int main(int argc, char *argv[]) {
@@ -19,13 +20,15 @@ int main(int argc, char *argv[]) {
     }
 
     file = fopen(file_name, "rb");
-    if (file == NULL) {
+    if (file == NULL)
+    {
         perror("Erro ao abrir file");
         return 1;
     }
-    
+
     ClassFile *cf = malloc(sizeof(ClassFile));
-    if (cf == NULL){
+    if (cf == NULL)
+    {
         perror("Erro ao alocar ClassFile");
         fclose(file);
         return 1;
@@ -33,6 +36,8 @@ int main(int argc, char *argv[]) {
 
     // Executa a leitura binária do arquivo .class
     read_classfile(cf, file);
+    if (check_constant_pool_references(cf) != 0)
+        printf("erro ASJD AKSDJ ");
 
     printf("DEBUG: methods_count = %d\n", cf->methods_count);
     for (int i = 0; i < cf->methods_count; i++) {

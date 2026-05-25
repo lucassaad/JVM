@@ -255,5 +255,13 @@ int read_classfile(ClassFile *cf, FILE *file) {
     } else {
         cf->methods = NULL;
     }
+
+    if (fread(&cf->attributes_count, sizeof(cf->attributes_count), 1, file) != 1) {
+        perror("Erro ao ler 'attributes_count' global");
+        return 1;
+    }
+    cf->attributes_count = byteswap_u2(cf->attributes_count);
+
+    cf->attributes = read_attributes_array(cf->attributes_count, file);
     return 0;
 }
