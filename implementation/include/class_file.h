@@ -2,7 +2,6 @@
 #define CLASS_FILE_H
 
 #include <stdint.h>
-// #include "constant_pool.h"
 
 // Definição genérica interna de cada item do Pool
 typedef struct {

@@ -1,6 +1,7 @@
 #ifndef CONSTANT_POOL_H
 #define CONSTANT_POOL_H
 
+#include <stdio.h>
 #include <stdint.h>
 #include "class_file.h"
 

@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include "reader.h"
 #include "utils.h"
+#include "class_file.h"
+#include "constant_pool.h"
 
 
 int read_classfile(ClassFile *cf, FILE *file) {

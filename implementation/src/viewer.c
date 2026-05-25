@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "viewer.h"
 #include "class_file.h"
+#include "constant_pool.h"
 
 // Traduz a versão Major
 const char* get_java_version_string(uint16_t major_version) {
