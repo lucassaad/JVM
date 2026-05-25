@@ -51,8 +51,16 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // Exibe a primeira parte (Geral e Pool de Constantes)
-    print_general_information(cf);
+    // Abre o arquivo .txt
+    FILE *arquivo_txt = fopen("saida_exibidor.txt", "w");
+    if (arquivo_txt == NULL) {
+        printf("Erro ao criar o arquivo txt!\n");
+        return 1;
+    }
+
+    // Exibi as informações Gerais
+    print_general_information(stdout, cf);
+    print_general_information(arquivo_txt, cf);
 
     // EXIBIÇÃO DO CODE ATTRIBUTE (Movido para antes dos frees!)
     printf("\n===== CODE ATTRIBUTES =====\n");
@@ -92,6 +100,8 @@ int main(int argc, char *argv[]) {
             free(entry);
         }
     }
+
+    fclose(arquivo_txt);
 
     // 2. Libera o array da constant pool
     free(cf->constant_pool);
