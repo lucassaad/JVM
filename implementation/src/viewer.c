@@ -88,7 +88,8 @@ void print_constant_pool(ClassFile *cf) {
             case CONSTANT_Utf8: {
                 CONSTANT_Utf8_info *info = (CONSTANT_Utf8_info *)entry->info;
 
-                printf("  #%d = Utf8\t\t%.*s\n", i, info->length, info->bytes);
+                printf("[%02d] CONSTANT_Utf8_info\n\tLength of byte array: %d\n\tLength of string: %d\n\tString: <%.*s>\n", 
+                       i, info->length, info->length, info->length, info->bytes);
                 break;
             }
             case CONSTANT_Class: {
@@ -96,7 +97,7 @@ void print_constant_pool(ClassFile *cf) {
                 // Resolve a referência para mostrar o nome real
                 CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[info->name_index]->info;
 
-                printf("  #%d = Class\t\t#%d\t\t// %.*s\n", i, info->name_index, name->length, name->bytes);
+                printf("[%02d] CONSTANT_Class_info\n\tClass Name: cp_info #%d <%.*s>\n", i, info->name_index, name->length, name->bytes);
                 break;
             }
             case CONSTANT_Methodref: {
@@ -111,7 +112,8 @@ void print_constant_pool(ClassFile *cf) {
                 CONSTANT_Utf8_info *nt_name = (CONSTANT_Utf8_info *)cf->constant_pool[nt_info->name_index]->info;
                 CONSTANT_Utf8_info *nt_desc = (CONSTANT_Utf8_info *)cf->constant_pool[nt_info->descriptor_index]->info;
 
-                printf("  #%d = Methodref\t#%d.#%d\t\t// %.*s.%.*s:%.*s\n", i, info->class_index, info->name_and_type_index, class_name->length, class_name->bytes, nt_name->length, nt_name->bytes, nt_desc->length, nt_desc->bytes);
+                printf("[%02d] CONSTANT_Methodref_info\n\tClass name: cp_info #%d <%.*s>\n\tName and type: cp_info #%d <%.*s : %.*s>\n", 
+                       i, info->class_index, class_name->length, class_name->bytes, info->name_and_type_index, nt_name->length, nt_name->bytes, nt_desc->length, nt_desc->bytes);
                 break;
             }
             case CONSTANT_Fieldref: {
@@ -125,14 +127,15 @@ void print_constant_pool(ClassFile *cf) {
                 CONSTANT_Utf8_info *nt_name = (CONSTANT_Utf8_info *)cf->constant_pool[nt_info->name_index]->info;
                 CONSTANT_Utf8_info *nt_desc = (CONSTANT_Utf8_info *)cf->constant_pool[nt_info->descriptor_index]->info;
 
-                printf("  #%d = Fieldref\t#%d.#%d\t\t// %.*s.%.*s:%.*s\n", i, info->class_index, info->name_and_type_index, class_name->length, class_name->bytes, nt_name->length, nt_name->bytes, nt_desc->length, nt_desc->bytes);
+                printf("[%02d] CONSTANT_Fieldref_info\n\tClass name: cp_info #%d <%.*s>\n\tName and type: cp_info #%d <%.*s : %.*s>\n", 
+                       i, info->class_index, class_name->length, class_name->bytes, info->name_and_type_index, nt_name->length, nt_name->bytes, nt_desc->length, nt_desc->bytes);
                 break;
             }
             case CONSTANT_String: {
                 CONSTANT_String_info *info = (CONSTANT_String_info *)entry->info;
                 CONSTANT_Utf8_info *str = (CONSTANT_Utf8_info *)cf->constant_pool[info->string_index]->info;
 
-                printf("  #%d = String\t\t#%d\t\t// %.*s\n", i, info->string_index, str->length, str->bytes);
+                printf("[%02d] CONSTANT_String_info\n\tcp_info #%d <%.*s>\n", i, info->string_index, str->length, str->bytes);
                 break;
             }
             case CONSTANT_NameAndType: {
@@ -140,26 +143,31 @@ void print_constant_pool(ClassFile *cf) {
                 CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[info->name_index]->info;
                 CONSTANT_Utf8_info *desc = (CONSTANT_Utf8_info *)cf->constant_pool[info->descriptor_index]->info;
                 
-                printf("  #%d = NameAndType\t#%d:#%d\t\t// %.*s:%.*s\n", i, info->name_index, info->descriptor_index, name->length, name->bytes, desc->length, desc->bytes);
+                printf("[%02d] CONSTANT_NameAndType_info\n\tName: cp_info #%d <%.*s>\n\tDescriptor: cp_info #%d <%.*s>\n", 
+                       i, info->name_index, name->length, name->bytes, info->descriptor_index, desc->length, desc->bytes);
                 break;
             }
             case CONSTANT_Integer: {
                 CONSTANT_Integer_info *info = (CONSTANT_Integer_info *)entry->info;
 
-                printf("  #%d = Integer\t\t%d\n", i, info->bytes);
+                printf("[%02d] CONSTANT_Integer_info\n\tBytes: 0x%08X\n\tInteger: %d\n", 
+                       i, info->bytes, info->bytes);
                 break;
             }
             case CONSTANT_Float: {
                 CONSTANT_Float_info *info = (CONSTANT_Float_info *)entry->info;
 
-                printf("  #%d = Float\t\t%f\n", i, *(float *)&info->bytes);
+                printf("[%02d] CONSTANT_Float_info\n\tBytes: 0x%08X\n\tFloat: %f\n", 
+                       i, info->bytes, *(float *)&info->bytes);
                 break;
             }
             case CONSTANT_Long: {
                 CONSTANT_Long_info *info = (CONSTANT_Long_info *)entry->info;
                 long long valor = ((long long)info->high_bytes << 32) | info->low_bytes;
 
-                printf("  #%d = Long\t\t%lld\n", i, valor);
+                printf("[%02d] CONSTANT_Long_info\n\tHigh bytes: 0x%08X\n\tLow bytes: 0x%08X\n\tLong: %lld\n", 
+                       i, info->high_bytes, info->low_bytes, valor);
+                printf("[%02d] (large numeric continued)\n", i + 1);
                 i++; // Long ocupa dois slots
                 break;
             }
@@ -167,7 +175,9 @@ void print_constant_pool(ClassFile *cf) {
                 CONSTANT_Double_info *info = (CONSTANT_Double_info *)entry->info;
                 long long bits = ((long long)info->high_bytes << 32) | info->low_bytes;
 
-                printf("  #%d = Double\t\t%f\n", i, *(double *)&bits);
+                printf("[%02d] CONSTANT_Double_info\n\tHigh bytes: 0x%08X\n\tLow bytes: 0x%08X\n\tDouble: %f\n", 
+                       i, info->high_bytes, info->low_bytes, *(double *)&bits);
+                printf("[%02d] (large numeric continued)\n", i + 1);
                 i++; // Double ocupa dois slots
                 break;
             }
@@ -182,13 +192,15 @@ void print_constant_pool(ClassFile *cf) {
                 CONSTANT_Utf8_info *nt_name = (CONSTANT_Utf8_info *)cf->constant_pool[nt_info->name_index]->info;
                 CONSTANT_Utf8_info *nt_desc = (CONSTANT_Utf8_info *)cf->constant_pool[nt_info->descriptor_index]->info;
 
-                printf("  #%d = InterfaceMethodref\t#%d.#%d\t// %.*s.%.*s:%.*s\n", i, info->class_index, info->name_and_type_index, class_name->length, class_name->bytes, nt_name->length, nt_name->bytes, nt_desc->length, nt_desc->bytes);
+                printf("[%02d] CONSTANT_InterfaceMethodref_info\n\tClass name: cp_info #%d <%.*s>\n\tName and type: cp_info #%d <%.*s : %.*s>\n", 
+                       i, info->class_index, class_name->length, class_name->bytes, info->name_and_type_index, nt_name->length, nt_name->bytes, nt_desc->length, nt_desc->bytes);
                 break;
             }
             case CONSTANT_MethodHandle: {
                 CONSTANT_MethodHandle_info *info = (CONSTANT_MethodHandle_info *)entry->info;
 
-                printf("  #%d = MethodHandle\tKind: %d, Ref: #%d\n", i, info->reference_kind, info->reference_index);
+                printf("[%02d] CONSTANT_MethodHandle_info\n\tReference kind: %d\n\tReference index: cp_info #%d\n", 
+                       i, info->reference_kind, info->reference_index);
                 break;
             }
             case CONSTANT_MethodType: {
@@ -196,7 +208,8 @@ void print_constant_pool(ClassFile *cf) {
                 // Resolve o descriptor que aponta para um Utf8
                 CONSTANT_Utf8_info *desc = (CONSTANT_Utf8_info *)cf->constant_pool[info->descriptor_index]->info;
 
-                printf("  #%d = MethodType\t#%d\t\t// %.*s\n", i, info->descriptor_index, desc->length, desc->bytes);
+                printf("[%02d] CONSTANT_MethodType_info\n\tDescriptor: cp_info #%d <%.*s>\n", 
+                       i, info->descriptor_index, desc->length, desc->bytes);
                 break;
             }
             case CONSTANT_InvokeDynamic: {
@@ -206,7 +219,8 @@ void print_constant_pool(ClassFile *cf) {
                 CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[nt->name_index]->info;
                 CONSTANT_Utf8_info *tipo = (CONSTANT_Utf8_info *)cf->constant_pool[nt->descriptor_index]->info;
                 
-                printf("  #%d = InvokeDynamic\t#%d.#%d\t\t// %.*s:%.*s\n", i, info->bootstrap_method_attr_index, info->name_and_type_index, name->length, name->bytes, tipo->length, tipo->bytes);
+                printf("[%02d] CONSTANT_InvokeDynamic_info\n\tBootstrap method attr: %d\n\tName and type: cp_info #%d <%.*s : %.*s>\n", 
+                       i, info->bootstrap_method_attr_index, info->name_and_type_index, name->length, name->bytes, tipo->length, tipo->bytes);
                 break;
             }
             case CONSTANT_Dynamic: {
@@ -217,23 +231,24 @@ void print_constant_pool(ClassFile *cf) {
                 CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[nt->name_index]->info;
                 CONSTANT_Utf8_info *tipo = (CONSTANT_Utf8_info *)cf->constant_pool[nt->descriptor_index]->info;
 
-                printf("  #%d = Dynamic\t\t#%d.#%d\t\t// %.*s:%.*s\n", i, info->bootstrap_method_attr_index, info->name_and_type_index, name->length, name->bytes, tipo->length, tipo->bytes);
+                printf("[%02d] CONSTANT_Dynamic_info\n\tBootstrap method attr: %d\n\tName and type: cp_info #%d <%.*s : %.*s>\n", 
+                       i, info->bootstrap_method_attr_index, info->name_and_type_index, name->length, name->bytes, tipo->length, tipo->bytes);
                 break;
             }
             case CONSTANT_Module: {
                 CONSTANT_Module_info *info = (CONSTANT_Module_info *)entry->info;
                 CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[info->name_index]->info;
-                printf("  #%d = Module\t\t#%d\t\t// %.*s\n", i, info->name_index, name->length, name->bytes);
+                printf("[%02d] CONSTANT_Module_info\n\tName: cp_info #%d <%.*s>\n", i, info->name_index, name->length, name->bytes);
                 break;
             }
             case CONSTANT_Package: {
                 CONSTANT_Package_info *info = (CONSTANT_Package_info *)entry->info;
                 CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[info->name_index]->info;
-                printf("  #%d = Package\t\t#%d\t\t// %.*s\n", i, info->name_index, name->length, name->bytes);
+                printf("[%02d] CONSTANT_Package_info\n\tName: cp_info #%d <%.*s>\n", i, info->name_index, name->length, name->bytes);
                 break;
             }
             default:
-                printf("  #%d = (tag %d não implementada)\n", i, entry->tag);
+                printf("[%02d] (tag %d não implementada)\n", i, entry->tag);
                 break;
         }
     }
