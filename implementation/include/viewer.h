@@ -1,8 +1,8 @@
 #ifndef VIEWER_H
 #define VIEWER_H
 
+#include <stdint.h>
 #include "class_file.h"
-#include "constant_pool.h"
 
 // Funções principais de exibição
 void print_general_information(ClassFile *cf);
