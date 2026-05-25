@@ -2,7 +2,6 @@
 #define CLASS_FILE_H
 
 #include <stdint.h>
-#include "constant_pool.h"
 
 // Definição genérica interna de cada item do Pool
 typedef struct {
@@ -26,7 +25,7 @@ typedef struct {
     attribute_info *attributes;
 } field_info;
 
-// Estrutura de um Field (Variável de Classe)
+// Estrutura de um Método
 typedef struct {
     uint16_t access_flags;
     uint16_t name_index;
@@ -51,8 +50,8 @@ typedef struct {
     field_info *fields;
     uint16_t methods_count;
     method_info *methods;
-
-    // As structs de fields, methods e attributes serão adicionadas aqui
+    uint16_t attributes_count;
+    attribute_info *attributes;
 } ClassFile;
 
 #endif

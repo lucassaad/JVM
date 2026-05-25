@@ -97,7 +97,45 @@ void print_general_information(ClassFile *cf) {
     printf("=======================================================\n");
 }
 
-void print_constant_pool(ClassFile *cf) {
+void print_class_attributes(ClassFile *cf)
+{
+    printf("\n===== CLASS ATTRIBUTES =====\n");
+
+    for (int i = 0; i < cf->attributes_count; i++) {
+
+        attribute_info *attr =
+            &cf->attributes[i];
+
+        uint16_t name_index =
+            attr->attribute_name_index;
+
+        cp_info *cp =
+            cf->constant_pool[name_index];
+
+        if (cp == NULL)
+            continue;
+
+        if (cp->tag != CONSTANT_Utf8)
+            continue;
+
+        CONSTANT_Utf8_info *utf8 =
+            (CONSTANT_Utf8_info*) cp->info;
+
+        printf("\nAttribute %d\n", i);
+
+        printf(
+            "Name: %.*s\n",
+            utf8->length,
+            utf8->bytes
+        );
+
+        printf(
+            "Length: %u\n",
+            attr->attribute_length
+        );
+    }
+
+  void print_constant_pool(ClassFile *cf) {
     printf("=== Constant Pool (%d entradas) ===\n", cf->constant_pool_count - 1);
 
     for (int i = 1; i < cf->constant_pool_count; i++) {
