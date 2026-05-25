@@ -4,6 +4,7 @@
 #include "reader.h"
 #include "viewer.h"
 #include "constant_pool.h"
+#include "utils.h"
 
 int main()
 {
@@ -33,23 +34,7 @@ int main()
 
     print_general_information(cf);
 
-    // Limpeza (temporária, até implementarem o deep free no utils.c)
-    // 1. libera cada entrada da constant pool
-    for (int i = 1; i < cf->constant_pool_count; i++)
-    {
-        cp_info *entry = cf->constant_pool[i];
-
-        if (entry->tag == 5 || entry->tag == 6)
-            i++;
-        free(entry->info);
-        free(entry);
-    }
-
-    // 2. libera o array da constant pool
-    free(cf->constant_pool);
-
-    // 3. libera a ClassFile
-    free(cf);
+    deep_free(cf);
 
     if (fclose(file) != 0)
     {
