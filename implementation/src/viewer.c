@@ -35,6 +35,39 @@ const char* get_java_version_string(uint16_t major_version) {
     }
 }
 
+// Traduz as máscaras de bits das Access Flags de um FIELD para texto descritivo
+void print_field_access_flags(uint16_t flags) {
+    printf("0x%04X [ ", flags);
+    if (flags & 0x0001) printf("public ");
+    if (flags & 0x0002) printf("private ");
+    if (flags & 0x0004) printf("protected ");
+    if (flags & 0x0008) printf("static ");
+    if (flags & 0x0010) printf("final ");
+    if (flags & 0x0040) printf("volatile ");
+    if (flags & 0x0080) printf("transient ");
+    if (flags & 0x1000) printf("synthetic ");
+    if (flags & 0x4000) printf("enum ");
+    printf("]");
+}
+
+void print_method_access_flags(uint16_t flags) {
+    printf("0x%04X [ ", flags);
+    if (flags & 0x0001) printf("public ");
+    if (flags & 0x0002) printf("private ");
+    if (flags & 0x0004) printf("protected ");
+    if (flags & 0x0008) printf("static ");
+    if (flags & 0x0010) printf("final ");
+    if (flags & 0x0020) printf("synchronized ");
+    if (flags & 0x0040) printf("bridge ");
+    if (flags & 0x0080) printf("varargs ");
+    if (flags & 0x0100) printf("native ");
+    if (flags & 0x0400) printf("abstract ");
+    if (flags & 0x0800) printf("strictfp ");
+    if (flags & 0x1000) printf("synthetic ");
+    printf("]");
+}
+
+
 void print_utf8_info(void *entry_void) {
     CONSTANT_Utf8_info *entry = (CONSTANT_Utf8_info *) entry_void;
     printf("tag    :  %d\n", entry->tag);
@@ -59,16 +92,6 @@ void print_general_information(ClassFile *cf) {
     printf("Interfaces Count      : %d\n", cf->interfaces_count);
     printf("Fields Count          : %d\n", cf->fields_count);
     printf("Methods Count         : %d\n", cf->methods_count);
-
-    // Display 'constant_utf8_info'
-    for (int i = 1; i < cf->constant_pool_count; i++) {
-        cp_info *constant_info = cf->constant_pool[i];
-        if (constant_info->tag == 1) {
-            printf("CONSTANT_Utf8_info - constant_pool[%d]\n", i);
-            print_utf8_info(constant_info->info);
-        }
-        if (constant_info->tag == 5 || constant_info->tag == 6) i++;    
-    }
     
     // Implementar demais campos
     printf("=======================================================\n");
@@ -265,20 +288,22 @@ void print_fields(ClassFile *cf) {
     // O vetor de fields começa no índice 0
     for (int i = 0; i < cf->fields_count; i++) {
         
-        // Pega o field atual do laço
         field_info *field = &cf->fields[i];
 
-        // Vai na Constant Pool buscar o Nome da variável
         CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[field->name_index]->info;
-        
-        // Vai na Constant Pool buscar o Tipo (Descriptor) da variável
         CONSTANT_Utf8_info *desc = (CONSTANT_Utf8_info *)cf->constant_pool[field->descriptor_index]->info;
 
-        // Exibe de forma formatada e limpa
-        printf("[%02d] Nome: %.*s\n", i, name->length, name->bytes);
-        printf("     Tipo: %.*s\n", desc->length, desc->bytes);
-        printf("     Flags de Acesso: 0x%04X\n", field->access_flags);
-        printf("     Atributos: %d\n", field->attributes_count);
+        // Título do Field
+        printf("[%d] %.*s\n", i, name->length, name->bytes);
+        
+        // Detalhes
+        printf("    Name:           cp_info #%d <%.*s>\n", field->name_index, name->length, name->bytes);
+        printf("    Descriptor:     cp_info #%d <%.*s>\n", field->descriptor_index, desc->length, desc->bytes);
+
+        printf("    Access flags:   ");
+        print_field_access_flags(field->access_flags);
+        printf("\n");
+        printf("    Attributes count: %d\n", field->attributes_count);
 
         for (int j = 0; j < field->attributes_count; j++) {
             attribute_info *attr = &field->attributes[j];
@@ -287,9 +312,58 @@ void print_fields(ClassFile *cf) {
             CONSTANT_Utf8_info *attr_name = (CONSTANT_Utf8_info *)cf->constant_pool[attr->attribute_name_index]->info;
 
             // Imprime cada atributo
-            printf("       -> Atributo [%d]: %.*s (Tamanho: %u bytes)\n", j, attr_name->length, attr_name->bytes, attr->attribute_length);
+            printf("       -> Attribute [%d]: %.*s\n", j, attr_name->length, attr_name->bytes);
+            printf("           Attribute name index: cp_info #%d <%.*s>\n", attr->attribute_name_index, attr_name->length, attr_name->bytes);
+            printf("           Attribute length:     %u\n", attr->attribute_length);
+            printf("\n");
         }
         
         printf("\n"); // Pula uma linha no final para separar o próximo field
+    }
+}
+
+void print_methods(ClassFile *cf) {
+    printf("=== Methods (%d entradas) ===\n", cf->methods_count);
+
+    if (cf->methods_count == 0) {
+        printf("  (nenhum method)\n");
+        return;
+    }
+
+    // O vetor de methods começa no índice 0
+    for (int i = 0; i < cf->methods_count; i++) {
+        
+        method_info *method = &cf->methods[i];
+
+        CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[method->name_index]->info;
+        CONSTANT_Utf8_info *desc = (CONSTANT_Utf8_info *)cf->constant_pool[method->descriptor_index]->info;
+
+        // Título do Method
+        printf("[%d] %.*s\n", i, name->length, name->bytes);
+        
+        // Detalhes
+        printf("    Name:           cp_info #%d <%.*s>\n", method->name_index, name->length, name->bytes);
+        printf("    Descriptor:     cp_info #%d <%.*s>\n", method->descriptor_index, desc->length, desc->bytes);
+
+        printf("    Access flags:   ");
+        print_method_access_flags(method->access_flags);
+        printf("\n");
+
+        printf("    Attributes count: %d\n", method->attributes_count);
+
+        for (int j = 0; j < method->attributes_count; j++) {
+            attribute_info *attr = &method->attributes[j];
+
+            // Busca o nome do atributo na Constant Pool
+            CONSTANT_Utf8_info *attr_name = (CONSTANT_Utf8_info *)cf->constant_pool[attr->attribute_name_index]->info;
+
+            // Imprime o sumário de cada atributo
+            printf("       -> Attribute [%d]: %.*s\n", j, attr_name->length, attr_name->bytes);
+            printf("           Attribute name index: cp_info #%d <%.*s>\n", attr->attribute_name_index, attr_name->length, attr_name->bytes);
+            printf("           Attribute length:     %u\n", attr->attribute_length);
+            printf("\n");
+        }
+        
+        printf("\n"); // Pula uma linha no final para separar o próximo method
     }
 }
