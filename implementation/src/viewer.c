@@ -86,75 +86,77 @@ void print_constant_pool(ClassFile *cf) {
 
         switch (entry->tag) {
             case CONSTANT_Utf8: {
-                CONSTANT_Utf8_info *info = (CONSTANT_Utf8_info *)entry;
+                CONSTANT_Utf8_info *info = (CONSTANT_Utf8_info *)entry->info;
 
                 printf("  #%d = Utf8\t\t%.*s\n", i, info->length, info->bytes);
                 break;
             }
             case CONSTANT_Class: {
-                CONSTANT_Class_info *info = (CONSTANT_Class_info *)entry;
+                CONSTANT_Class_info *info = (CONSTANT_Class_info *)entry->info;
                 // Resolve a referência para mostrar o nome real
-                CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[info->name_index];
+                CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[info->name_index]->info;
 
-                printf("  #%d = Class\t\t#%d\t// %.*s\n", i, info->name_index, name->length, name->bytes);
+                printf("  #%d = Class\t\t#%d\t\t// %.*s\n", i, info->name_index, name->length, name->bytes);
                 break;
             }
             case CONSTANT_Methodref: {
-                CONSTANT_Methodref_info *info = (CONSTANT_Methodref_info *)entry;
+                CONSTANT_Methodref_info *info = (CONSTANT_Methodref_info *)entry->info;
 
                 // Resolve onde está a classe
-                CONSTANT_Class_info *class_info = (CONSTANT_Class_info *)cf->constant_pool[info->class_index];
-                CONSTANT_Utf8_info *class_name = (CONSTANT_Utf8_info *)cf->constant_pool[class_info->name_index];
+                CONSTANT_Class_info *class_info = (CONSTANT_Class_info *)cf->constant_pool[info->class_index]->info;
+                CONSTANT_Utf8_info *class_name = (CONSTANT_Utf8_info *)cf->constant_pool[class_info->name_index]->info;
 
-                // Resolve onde está o nome e o tipo do método
-                CONSTANT_NameAndType_info *nt_info = (CONSTANT_NameAndType_info *)cf->constant_pool[info->name_and_type_index];
-                CONSTANT_Utf8_info *nt_name = (CONSTANT_Utf8_info *)cf->constant_pool[nt_info->name_index];
+                // Resolve onde está o nome, o tipo e o descriptor do método
+                CONSTANT_NameAndType_info *nt_info = (CONSTANT_NameAndType_info *)cf->constant_pool[info->name_and_type_index]->info;
+                CONSTANT_Utf8_info *nt_name = (CONSTANT_Utf8_info *)cf->constant_pool[nt_info->name_index]->info;
+                CONSTANT_Utf8_info *nt_desc = (CONSTANT_Utf8_info *)cf->constant_pool[nt_info->descriptor_index]->info;
 
-                printf("  #%d = Methodref\t\t#%d.#%d\t\t// %.*s.%.*s\n", i, info->class_index, info->name_and_type_index, class_name->length, class_name->bytes, nt_name->length, nt_name->bytes);
+                printf("  #%d = Methodref\t#%d.#%d\t\t// %.*s.%.*s:%.*s\n", i, info->class_index, info->name_and_type_index, class_name->length, class_name->bytes, nt_name->length, nt_name->bytes, nt_desc->length, nt_desc->bytes);
                 break;
             }
             case CONSTANT_Fieldref: {
-                CONSTANT_Fieldref_info *info = (CONSTANT_Fieldref_info *)entry;
+                CONSTANT_Fieldref_info *info = (CONSTANT_Fieldref_info *)entry->info;
                 // Resolve a classe
-                CONSTANT_Class_info *class_info = (CONSTANT_Class_info *)cf->constant_pool[info->class_index];
-                CONSTANT_Utf8_info *class_name = (CONSTANT_Utf8_info *)cf->constant_pool[class_info->name_index];
+                CONSTANT_Class_info *class_info = (CONSTANT_Class_info *)cf->constant_pool[info->class_index]->info;
+                CONSTANT_Utf8_info *class_name = (CONSTANT_Utf8_info *)cf->constant_pool[class_info->name_index]->info;
 
-                // Resolve o nome e tipo
-                CONSTANT_NameAndType_info *nt_info = (CONSTANT_NameAndType_info *)cf->constant_pool[info->name_and_type_index];
-                CONSTANT_Utf8_info *nt_name = (CONSTANT_Utf8_info *)cf->constant_pool[nt_info->name_index];
+                // Resolve o nome, tipo e descriptor
+                CONSTANT_NameAndType_info *nt_info = (CONSTANT_NameAndType_info *)cf->constant_pool[info->name_and_type_index]->info;
+                CONSTANT_Utf8_info *nt_name = (CONSTANT_Utf8_info *)cf->constant_pool[nt_info->name_index]->info;
+                CONSTANT_Utf8_info *nt_desc = (CONSTANT_Utf8_info *)cf->constant_pool[nt_info->descriptor_index]->info;
 
-                printf("  #%d = Fieldref\t\t#%d.#%d\t\t// %.*s.%.*s\n", i, info->class_index, info->name_and_type_index, class_name->length, class_name->bytes, nt_name->length, nt_name->bytes);
+                printf("  #%d = Fieldref\t#%d.#%d\t\t// %.*s.%.*s:%.*s\n", i, info->class_index, info->name_and_type_index, class_name->length, class_name->bytes, nt_name->length, nt_name->bytes, nt_desc->length, nt_desc->bytes);
                 break;
             }
             case CONSTANT_String: {
-                CONSTANT_String_info *info = (CONSTANT_String_info *)entry;
-                CONSTANT_Utf8_info *str = (CONSTANT_Utf8_info *)cf->constant_pool[info->string_index];
+                CONSTANT_String_info *info = (CONSTANT_String_info *)entry->info;
+                CONSTANT_Utf8_info *str = (CONSTANT_Utf8_info *)cf->constant_pool[info->string_index]->info;
 
-                printf("  #%d = String\t\t#%d\t// %.*s\n", i, info->string_index, str->length, str->bytes);
+                printf("  #%d = String\t\t#%d\t\t// %.*s\n", i, info->string_index, str->length, str->bytes);
                 break;
             }
             case CONSTANT_NameAndType: {
-                CONSTANT_NameAndType_info *info = (CONSTANT_NameAndType_info *)entry;
-                CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[info->name_index];
-                CONSTANT_Utf8_info *desc = (CONSTANT_Utf8_info *)cf->constant_pool[info->descriptor_index];
+                CONSTANT_NameAndType_info *info = (CONSTANT_NameAndType_info *)entry->info;
+                CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[info->name_index]->info;
+                CONSTANT_Utf8_info *desc = (CONSTANT_Utf8_info *)cf->constant_pool[info->descriptor_index]->info;
                 
                 printf("  #%d = NameAndType\t#%d:#%d\t\t// %.*s:%.*s\n", i, info->name_index, info->descriptor_index, name->length, name->bytes, desc->length, desc->bytes);
                 break;
             }
             case CONSTANT_Integer: {
-                CONSTANT_Integer_info *info = (CONSTANT_Integer_info *)entry;
+                CONSTANT_Integer_info *info = (CONSTANT_Integer_info *)entry->info;
 
                 printf("  #%d = Integer\t\t%d\n", i, info->bytes);
                 break;
             }
             case CONSTANT_Float: {
-                CONSTANT_Float_info *info = (CONSTANT_Float_info *)entry;
+                CONSTANT_Float_info *info = (CONSTANT_Float_info *)entry->info;
 
                 printf("  #%d = Float\t\t%f\n", i, *(float *)&info->bytes);
                 break;
             }
             case CONSTANT_Long: {
-                CONSTANT_Long_info *info = (CONSTANT_Long_info *)entry;
+                CONSTANT_Long_info *info = (CONSTANT_Long_info *)entry->info;
                 long long valor = ((long long)info->high_bytes << 32) | info->low_bytes;
 
                 printf("  #%d = Long\t\t%lld\n", i, valor);
@@ -162,7 +164,7 @@ void print_constant_pool(ClassFile *cf) {
                 break;
             }
             case CONSTANT_Double: {
-                CONSTANT_Double_info *info = (CONSTANT_Double_info *)entry;
+                CONSTANT_Double_info *info = (CONSTANT_Double_info *)entry->info;
                 long long bits = ((long long)info->high_bytes << 32) | info->low_bytes;
 
                 printf("  #%d = Double\t\t%f\n", i, *(double *)&bits);
@@ -170,63 +172,64 @@ void print_constant_pool(ClassFile *cf) {
                 break;
             }
             case CONSTANT_InterfaceMethodref: {
-                CONSTANT_InterfaceMethodref_info *info = (CONSTANT_InterfaceMethodref_info *)entry;
+                CONSTANT_InterfaceMethodref_info *info = (CONSTANT_InterfaceMethodref_info *)entry->info;
                 // Resolve a classe
-                CONSTANT_Class_info *class_info = (CONSTANT_Class_info *)cf->constant_pool[info->class_index];
-                CONSTANT_Utf8_info *class_name = (CONSTANT_Utf8_info *)cf->constant_pool[class_info->name_index];
+                CONSTANT_Class_info *class_info = (CONSTANT_Class_info *)cf->constant_pool[info->class_index]->info;
+                CONSTANT_Utf8_info *class_name = (CONSTANT_Utf8_info *)cf->constant_pool[class_info->name_index]->info;
                 
-                // Resolve o nome e tipo
-                CONSTANT_NameAndType_info *nt_info = (CONSTANT_NameAndType_info *)cf->constant_pool[info->name_and_type_index];
-                CONSTANT_Utf8_info *nt_name = (CONSTANT_Utf8_info *)cf->constant_pool[nt_info->name_index];
+                // Resolve o nome, tipo e descriptor
+                CONSTANT_NameAndType_info *nt_info = (CONSTANT_NameAndType_info *)cf->constant_pool[info->name_and_type_index]->info;
+                CONSTANT_Utf8_info *nt_name = (CONSTANT_Utf8_info *)cf->constant_pool[nt_info->name_index]->info;
+                CONSTANT_Utf8_info *nt_desc = (CONSTANT_Utf8_info *)cf->constant_pool[nt_info->descriptor_index]->info;
 
-                printf("  #%d = InterfaceMethodref\t#%d.#%d\t\t// %.*s.%.*s\n", i, info->class_index, info->name_and_type_index, class_name->length, class_name->bytes, nt_name->length, nt_name->bytes);
+                printf("  #%d = InterfaceMethodref\t#%d.#%d\t// %.*s.%.*s:%.*s\n", i, info->class_index, info->name_and_type_index, class_name->length, class_name->bytes, nt_name->length, nt_name->bytes, nt_desc->length, nt_desc->bytes);
                 break;
             }
             case CONSTANT_MethodHandle: {
-                CONSTANT_MethodHandle_info *info = (CONSTANT_MethodHandle_info *)entry;
+                CONSTANT_MethodHandle_info *info = (CONSTANT_MethodHandle_info *)entry->info;
 
                 printf("  #%d = MethodHandle\tKind: %d, Ref: #%d\n", i, info->reference_kind, info->reference_index);
                 break;
             }
             case CONSTANT_MethodType: {
-                CONSTANT_MethodType_info *info = (CONSTANT_MethodType_info *)entry;
+                CONSTANT_MethodType_info *info = (CONSTANT_MethodType_info *)entry->info;
                 // Resolve o descriptor que aponta para um Utf8
-                CONSTANT_Utf8_info *desc = (CONSTANT_Utf8_info *)cf->constant_pool[info->descriptor_index];
+                CONSTANT_Utf8_info *desc = (CONSTANT_Utf8_info *)cf->constant_pool[info->descriptor_index]->info;
 
-                printf("  #%d = MethodType\t#%d\t// %.*s\n", i, info->descriptor_index, desc->length, desc->bytes);
+                printf("  #%d = MethodType\t#%d\t\t// %.*s\n", i, info->descriptor_index, desc->length, desc->bytes);
                 break;
             }
             case CONSTANT_InvokeDynamic: {
-                CONSTANT_InvokeDynamic_info *info = (CONSTANT_InvokeDynamic_info *)entry;
+                CONSTANT_InvokeDynamic_info *info = (CONSTANT_InvokeDynamic_info *)entry->info;
                 // Resolve o NameAndType associado
-                CONSTANT_NameAndType_info *nt = (CONSTANT_NameAndType_info *)cf->constant_pool[info->name_and_type_index];
-                CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[nt->name_index];
-                CONSTANT_Utf8_info *tipo = (CONSTANT_Utf8_info *)cf->constant_pool[nt->descriptor_index];
+                CONSTANT_NameAndType_info *nt = (CONSTANT_NameAndType_info *)cf->constant_pool[info->name_and_type_index]->info;
+                CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[nt->name_index]->info;
+                CONSTANT_Utf8_info *tipo = (CONSTANT_Utf8_info *)cf->constant_pool[nt->descriptor_index]->info;
                 
-                printf("  #%d = InvokeDynamic\t#%d.#%d\t// %.*s:%.*s\n", i, info->bootstrap_method_attr_index, info->name_and_type_index, name->length, name->bytes, tipo->length, tipo->bytes);
+                printf("  #%d = InvokeDynamic\t#%d.#%d\t\t// %.*s:%.*s\n", i, info->bootstrap_method_attr_index, info->name_and_type_index, name->length, name->bytes, tipo->length, tipo->bytes);
                 break;
             }
             case CONSTANT_Dynamic: {
-                CONSTANT_Dynamic_info *info = (CONSTANT_Dynamic_info *)entry;
-                CONSTANT_NameAndType_info *nt = (CONSTANT_NameAndType_info *)cf->constant_pool[info->name_and_type_index];
+                CONSTANT_Dynamic_info *info = (CONSTANT_Dynamic_info *)entry->info;
+                CONSTANT_NameAndType_info *nt = (CONSTANT_NameAndType_info *)cf->constant_pool[info->name_and_type_index]->info;
 
                 // Busca o nome e o tipo
-                CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[nt->name_index];
-                CONSTANT_Utf8_info *tipo = (CONSTANT_Utf8_info *)cf->constant_pool[nt->descriptor_index];
+                CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[nt->name_index]->info;
+                CONSTANT_Utf8_info *tipo = (CONSTANT_Utf8_info *)cf->constant_pool[nt->descriptor_index]->info;
 
-                printf("  #%d = Dynamic\t\t#%d.#%d\t// %.*s:%.*s\n", i, info->bootstrap_method_attr_index, info->name_and_type_index, name->length, name->bytes, tipo->length, tipo->bytes);
+                printf("  #%d = Dynamic\t\t#%d.#%d\t\t// %.*s:%.*s\n", i, info->bootstrap_method_attr_index, info->name_and_type_index, name->length, name->bytes, tipo->length, tipo->bytes);
                 break;
             }
             case CONSTANT_Module: {
-                CONSTANT_Module_info *info = (CONSTANT_Module_info *)entry;
-                CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[info->name_index];
-                printf("  #%d = Module\t#%d\t// %.*s\n", i, info->name_index, name->length, name->bytes);
+                CONSTANT_Module_info *info = (CONSTANT_Module_info *)entry->info;
+                CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[info->name_index]->info;
+                printf("  #%d = Module\t\t#%d\t\t// %.*s\n", i, info->name_index, name->length, name->bytes);
                 break;
             }
             case CONSTANT_Package: {
-                CONSTANT_Package_info *info = (CONSTANT_Package_info *)entry;
-                CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[info->name_index];
-                printf("  #%d = Package\t#%d\t// %.*s\n", i, info->name_index, name->length, name->bytes);
+                CONSTANT_Package_info *info = (CONSTANT_Package_info *)entry->info;
+                CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[info->name_index]->info;
+                printf("  #%d = Package\t\t#%d\t\t// %.*s\n", i, info->name_index, name->length, name->bytes);
                 break;
             }
             default:
@@ -251,10 +254,10 @@ void print_fields(ClassFile *cf) {
         field_info *field = &cf->fields[i];
 
         // Vai na Constant Pool buscar o Nome da variável
-        CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[field->name_index];
+        CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[field->name_index]->info;
         
         // Vai na Constant Pool buscar o Tipo (Descriptor) da variável
-        CONSTANT_Utf8_info *desc = (CONSTANT_Utf8_info *)cf->constant_pool[field->descriptor_index];
+        CONSTANT_Utf8_info *desc = (CONSTANT_Utf8_info *)cf->constant_pool[field->descriptor_index]->info;
 
         // Exibe de forma formatada e limpa
         printf("[%02d] Nome: %.*s\n", i, name->length, name->bytes);
@@ -266,7 +269,7 @@ void print_fields(ClassFile *cf) {
             attribute_info *attr = &field->attributes[j];
 
             // Busca o nome do atributo na Constant Pool
-            CONSTANT_Utf8_info *attr_name = (CONSTANT_Utf8_info *)cf->constant_pool[attr->attribute_name_index];
+            CONSTANT_Utf8_info *attr_name = (CONSTANT_Utf8_info *)cf->constant_pool[attr->attribute_name_index]->info;
 
             // Imprime cada atributo
             printf("       -> Atributo [%d]: %.*s (Tamanho: %u bytes)\n", j, attr_name->length, attr_name->bytes, attr->attribute_length);
