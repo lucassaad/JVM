@@ -4,6 +4,7 @@
 #include "reader.h"
 #include "viewer.h"
 #include "code_attribute.h"
+#include "instruction_reader.h"
 #include "constant_pool.h"
 #include <string.h>
 
@@ -38,6 +39,11 @@ int main(int argc, char *argv[]) {
     if (check_constant_pool_references(cf) != 0)
         printf("erro ASJD AKSDJ ");
 
+    printf("DEBUG: methods_count = %d\n", cf->methods_count);
+    for (int i = 0; i < cf->methods_count; i++) {
+        printf("DEBUG: method %d, attributes_count = %d\n", i, cf->methods[i].attributes_count);
+    }
+
     // Fecha o arquivo pois os dados já estão na memória (estrutura cf)
     if (fclose(file) != 0) {
         perror("Erro ao fechar o file");
@@ -68,6 +74,7 @@ int main(int argc, char *argv[]) {
                 // Se você alterou para receber cf, use: print_code_attribute(code, cf);
                 // Se manteve a assinatura antiga, use: print_code_attribute(code);
                 print_code_attribute(code); 
+                read_instructions(cf, code);
             }
         }
     }
