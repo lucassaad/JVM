@@ -8,6 +8,9 @@
 void print_general_information(ClassFile *cf);
 //Implementar demais funções de exibição
 
+void print_class_attributes(ClassFile *cf);
+
+
 // Funções auxiliares 
 const char* get_java_version_string(uint16_t major_version);
 

@@ -49,6 +49,9 @@ int main(int argc, char *argv[]) {
     // Exibe a primeira parte (Geral e Pool de Constantes)
     print_general_information(cf);
 
+    print_class_attributes(cf);
+
+
     // EXIBIÇÃO DO CODE ATTRIBUTE (Movido para antes dos frees!)
     printf("\n===== CODE ATTRIBUTES =====\n");
 
