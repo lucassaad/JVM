@@ -6,6 +6,8 @@
 
 // Funções principais de exibição
 void print_general_information(ClassFile *cf);
+void print_constant_pool(ClassFile *cf);
+void print_fields(ClassFile *cf);
 //Implementar demais funções de exibição
 
 void print_class_attributes(ClassFile *cf);
