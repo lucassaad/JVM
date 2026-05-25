@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include "reader.h"
 #include "utils.h"
+#include "class_file.h"
+#include "constant_pool.h"
 
 attribute_info* read_attributes_array(uint16_t count, FILE *file) {
     if (count == 0) return NULL;
