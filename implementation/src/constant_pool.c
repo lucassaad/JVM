@@ -321,7 +321,7 @@ int check_constant_pool_references(ClassFile *cf) {
                 CONSTANT_Class_info *info = (CONSTANT_Class_info *) entry->info;
             // Valida 'name_index'
                 // 0 < name_index <= constant_pool_count
-                if (info->name_index < 1 || info->name_index > cf->constant_pool_count) {
+                if (info->name_index < 1 || info->name_index >= cf->constant_pool_count) {
                     perror("'name_index' da CONSTANT_Class_info faz referencia a um indice invalido");
                     return 1;
                 }
@@ -339,7 +339,7 @@ int check_constant_pool_references(ClassFile *cf) {
         
             // Valida 'class_index': mey be either a class or inteface type
                 // 0 < class_index < constant_pool_count
-                if (info->class_index < 1 || info->class_index > cf->constant_pool_count) {
+                if (info->class_index < 1 || info->class_index >= cf->constant_pool_count) {
                     perror("'class_index' da CONSTANT_Fieldref_info faz referencia a um indice invalido");
                     return 1;
                 }            
@@ -351,7 +351,7 @@ int check_constant_pool_references(ClassFile *cf) {
                 }
             // Valida 'name_and_type_index': descriptor must be a field descriptor 
                 // 0 < name_and_type_index < constant_pool_count
-                if (info->name_and_type_index < 1 || info->name_and_type_index > cf->constant_pool_count) {
+                if (info->name_and_type_index < 1 || info->name_and_type_index >= cf->constant_pool_count) {
                     perror("'name_and_type_index' da CONSTANT_Fieldref_info faz referencia a um indice invalido");
                     return 1;
                 }            
@@ -369,7 +369,7 @@ int check_constant_pool_references(ClassFile *cf) {
         
             // Valida 'class_index': should be a class
                 // 0 < class_index < constant_pool_count
-                if (info->class_index < 1 || info->class_index > cf->constant_pool_count) {
+                if (info->class_index < 1 || info->class_index >= cf->constant_pool_count) {
                     perror("'class_index' da CONSTANT_Methodref_info faz referencia a um indice invalido");
                     return 1;
                 }            
@@ -381,7 +381,7 @@ int check_constant_pool_references(ClassFile *cf) {
                 }
             // Valida 'name_and_type_index': descriptor must be a method descriptor 
                 // 0 < name_and_type_index < constant_pool_count
-                if (info->name_and_type_index < 1 || info->name_and_type_index > cf->constant_pool_count) {
+                if (info->name_and_type_index < 1 || info->name_and_type_index >= cf->constant_pool_count) {
                     perror("'name_and_type_index' da CONSTANT_Methodref_info faz referencia a um indice invalido");
                     return 1;
                 }            
@@ -399,7 +399,7 @@ int check_constant_pool_references(ClassFile *cf) {
         
             // Valida 'class_index': should be an interface
                 // 0 < class_index < constant_pool_count
-                if (info->class_index < 1 || info->class_index > cf->constant_pool_count) {
+                if (info->class_index < 1 || info->class_index >= cf->constant_pool_count) {
                     perror("'class_index' da CONSTANT_InterfaceMethodref_info faz referencia a um indice invalido");
                     return 1;
                 }            
@@ -411,7 +411,7 @@ int check_constant_pool_references(ClassFile *cf) {
                 }
             // Valida 'name_and_type_index'
                 // 0 < name_and_type_index < constant_pool_count
-                if (info->name_and_type_index < 1 || info->name_and_type_index > cf->constant_pool_count) {
+                if (info->name_and_type_index < 1 || info->name_and_type_index >= cf->constant_pool_count) {
                     perror("'name_and_type_index' da CONSTANT_InterfaceMethodref_info faz referencia a um indice invalido");
                     return 1;
                 }            
@@ -429,7 +429,7 @@ int check_constant_pool_references(ClassFile *cf) {
         
             // Valida 'string_index': should be an interface
                 // 0 < string_index < constant_pool_count
-                if (info->string_index < 1 || info->string_index > cf->constant_pool_count) {
+                if (info->string_index < 1 || info->string_index >= cf->constant_pool_count) {
                     perror("'string_index' da CONSTANT_String_info faz referencia a um indice invalido");
                     return 1;
                 }            
@@ -448,11 +448,11 @@ int check_constant_pool_references(ClassFile *cf) {
             case CONSTANT_Long: break;
             case CONSTANT_Double: break;
             
-            case CONSTANT_NameAndType:{
-                CONSTANT_NameAndType_info *info = (CONSTANT_NameAndType_info *) entry;
+            case CONSTANT_NameAndType: {
+                CONSTANT_NameAndType_info *info = (CONSTANT_NameAndType_info *) entry->info;
             // Valida 'name_index'
                 // 0 < name_index <= constant_pool_count
-                if (info->name_index < 1 || info->name_index > cf->constant_pool_count) {
+                if (info->name_index < 1 || info->name_index >= cf->constant_pool_count) {
                     perror("'name_index' da CONSTANT_NameAndType faz referencia a um indice invalido");
                     return 1;
                 }
@@ -464,7 +464,7 @@ int check_constant_pool_references(ClassFile *cf) {
                 }
                 // Valida 'descriptor_index'
                 // 0 < descriptor_index <= constant_pool_count
-                if (info->descriptor_index < 1 || info->descriptor_index > cf->constant_pool_count) {
+                if (info->descriptor_index < 1 || info->descriptor_index >= cf->constant_pool_count) {
                     perror("'descriptor_index' da CONSTANT_NameAndType faz referencia a um indice invalido");
                     return 1;
                 }
@@ -480,7 +480,7 @@ int check_constant_pool_references(ClassFile *cf) {
             case CONSTANT_Utf8: {
                 // valida 'bytes'
                 // no byte may have value 0 and may not lie in the range 0xf0 - 0xff
-                CONSTANT_Utf8_info *info = (CONSTANT_Utf8_info *) entry;
+                CONSTANT_Utf8_info *info = (CONSTANT_Utf8_info *) entry->info;
                 for (int j = 0; j < info->length; j++) {
                     if (info->bytes[j] == 0) {
                         perror("byte com o valor 0");
@@ -495,7 +495,7 @@ int check_constant_pool_references(ClassFile *cf) {
             }
             
             case CONSTANT_MethodHandle: {
-                CONSTANT_MethodHandle_info *info = (CONSTANT_MethodHandle_info *) entry;
+                CONSTANT_MethodHandle_info *info = (CONSTANT_MethodHandle_info *) entry->info;
             // valida 'reference_kind'
                 if (info->reference_kind < 1 || info->reference_kind > 9) {
                         perror("valor invalido de 'reference_kind'");
@@ -503,11 +503,11 @@ int check_constant_pool_references(ClassFile *cf) {
                     }
             // valida 'reference_index'
                 // 0 < reference_index <= constant_pool_count
-                if (info->reference_index < 1 || info->reference_index > cf->constant_pool_count) {
+                if (info->reference_index < 1 || info->reference_index >= cf->constant_pool_count) {
                     perror("'reference_index' da CONSTANT_MethodHandle_info faz referencia a um indice invalido");
                     return 1;
                 }
-                switch (info->reference_index) {
+                switch (info->reference_kind) {
                     case 1:     // REF_getField
                     case 2:     // REF_getStatic
                     case 3:     // REF_putField
@@ -559,10 +559,10 @@ int check_constant_pool_references(ClassFile *cf) {
             }
 
             case CONSTANT_MethodType: {
-                CONSTANT_MethodType_info *info = (CONSTANT_MethodType_info *) entry;
+                CONSTANT_MethodType_info *info = (CONSTANT_MethodType_info *) entry->info;
             // valida 'descriptor_index'
                 // 0 < descriptor_index <= constant_pool_count
-                if (info->descriptor_index < 1 || info->descriptor_index > cf->constant_pool_count) {
+                if (info->descriptor_index < 1 || info->descriptor_index >= cf->constant_pool_count) {
                     perror("'descriptor_index' da CONSTANT_MethodType faz referencia a um indice invalido");
                     return 1;
                 }
@@ -575,18 +575,80 @@ int check_constant_pool_references(ClassFile *cf) {
                 break;
             }
 
-            case CONSTANT_Dynamic:
-            case CONSTANT_InvokeDynamic:
+            case CONSTANT_Dynamic: {
+                CONSTANT_Dynamic_info *info = (CONSTANT_Dynamic_info *) entry->info;
+                // Validar bootstrap method_attr_index 
                 // todo
+            //validar name_and_type_index
+                // 0 < name_and_type_index <= constant_pool_count
+                if (info->name_and_type_index < 1 || info->name_and_type_index >= cf->constant_pool_count) {
+                    perror("'name_and_type_index' da CONSTANT_Dynamic faz referencia a um indice invalido");
+                    return 1;
+                }
+                // constant_pool[name_and_type] -> CONSTANT_NameAndType_info
+                cp_info *referenced_entry = (cp_info *) cf->constant_pool[info->name_and_type_index];
+                if (referenced_entry->tag != CONSTANT_NameAndType) {
+                    perror("'name_and_type_index' da CONSTANT_Dynamic não faz referencia a CONSTANT_NameAndType");
+                    return 1;
+                }
+                
                 break;
-            case CONSTANT_Module:
-                //todo
-                break;
-            case CONSTANT_Package:
-                // todo    
-                break;
-        }  
+            }
+            case CONSTANT_InvokeDynamic: {
+                CONSTANT_InvokeDynamic_info *info = (CONSTANT_InvokeDynamic_info *) entry->info;
+                // Validar bootstrap method_attr_index 
+                // todo
+            //validar name_and_type_index
+                // 0 < name_and_type_index <= constant_pool_count
+                if (info->name_and_type_index < 1 || info->name_and_type_index >= cf->constant_pool_count) {
+                    perror("'name_and_type_index' da CONSTANT_InvokeDynamic faz referencia a um indice invalido");
+                    return 1;
+                }
+                // constant_pool[name_and_type] -> CONSTANT_NameAndType_info
+                cp_info *referenced_entry = (cp_info *) cf->constant_pool[info->name_and_type_index];
+                if (referenced_entry->tag != CONSTANT_NameAndType) {
+                    perror("'name_and_type_index' da CONSTANT_Dynamic não faz referencia a CONSTANT_NameAndType");
+                    return 1;
 
+                }    
+                break;
+            }
+            case CONSTANT_Module: {
+                CONSTANT_Module_info *info = (CONSTANT_Module_info *) entry->info;
+            // Valida 'name_index'
+                // 0 < name_index <= constant_pool_count
+                if (info->name_index < 1 || info->name_index >= cf->constant_pool_count) {
+                    perror("'name_index' da CONSTANT_Module faz referencia a um indice invalido");
+                    return 1;
+                }
+                // constant_pool[name_index] -> CONSTANT_Utf8_info
+                cp_info *referenced_entry = (cp_info *) cf->constant_pool[info->name_index];
+                if (referenced_entry->tag != CONSTANT_Utf8) {
+                    perror("'name_index' da CONSTANT_Module não faz referencia a CONTANT_Utf8");
+                    return 1;
+                }
+
+                break;
+            }
+            
+            case CONSTANT_Package: {
+                CONSTANT_Package_info *info = (CONSTANT_Package_info *) entry->info;
+                // Valida 'name_index'
+                // 0 < name_index <= constant_pool_count
+                if (info->name_index < 1 || info->name_index >= cf->constant_pool_count) {
+                    perror("'name_index' da CONSTANT_Package faz referencia a um indice invalido");
+                    return 1;
+                }
+                // constant_pool[name_index] -> CONSTANT_Utf8_info
+                cp_info *referenced_entry = (cp_info *) cf->constant_pool[info->name_index];
+                if (referenced_entry->tag != CONSTANT_Utf8) {
+                    perror("'name_index' da CONSTANT_Package não faz referencia a CONTANT_Utf8");
+                    return 1;
+                }
+                
+                break;
+            }
+        } 
     }
     return 0;
 }
