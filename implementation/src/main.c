@@ -39,11 +39,6 @@ int main(int argc, char *argv[]) {
     if (check_constant_pool_references(cf) != 0)
         printf("erro ASJD AKSDJ ");
 
-    printf("DEBUG: methods_count = %d\n", cf->methods_count);
-    for (int i = 0; i < cf->methods_count; i++) {
-        printf("DEBUG: method %d, attributes_count = %d\n", i, cf->methods[i].attributes_count);
-    }
-
     // Fecha o arquivo pois os dados já estão na memória (estrutura cf)
     if (fclose(file) != 0) {
         perror("Erro ao fechar o file");
