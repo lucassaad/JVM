@@ -5,189 +5,6 @@
 #include "reader.h"
 #include "utils.h"
 #include "code_attribute.h"
-#include "constant_pool.h"
-
-// Função auxiliar para ler um array de atributos genérico
-attribute_info* read_attributes_array(uint16_t count, FILE *file) {
-    if (count == 0) return NULL;
-
-    attribute_info *attrs = malloc(sizeof(attribute_info) * count);
-    if (attrs == NULL) {
-        perror("Erro ao alocar memória para array de atributos");
-        return NULL;
-    }
-
-    for (int j = 0; j < count; j++) {
-        fread(&attrs[j].attribute_name_index, sizeof(uint16_t), 1, file);
-        attrs[j].attribute_name_index = byteswap_u2(attrs[j].attribute_name_index);
-        
-        fread(&attrs[j].attribute_length, sizeof(uint32_t), 1, file);
-        attrs[j].attribute_length = byteswap_u4(attrs[j].attribute_length);
-        
-        if (attrs[j].attribute_length > 0) {
-            attrs[j].info = malloc(attrs[j].attribute_length);
-            if (attrs[j].info == NULL) {
-                perror("Erro ao alocar memória para dados do atributo");
-                return NULL;
-            }
-            fread(attrs[j].info, 1, attrs[j].attribute_length, file);
-        } else {
-            attrs[j].info = NULL;
-        }
-    }
-    return attrs;
-}
-
-// Função para validar o this_class
-int validate_this_class(ClassFile *cf) {
-    if (cf->this_class <= 0 || cf->this_class >= cf->constant_pool_count) {
-        printf("Erro de Validação: this_class index (%d) fora dos limites da constant pool.\n", cf->this_class);
-        return 0; 
-    }
-
-    if (cf->constant_pool[cf->this_class]->tag != CONSTANT_Class) {
-        printf("Erro de Validação: this_class não aponta para um CONSTANT_Class (tag %d). Tag encontrada: %d\n", 
-                CONSTANT_Class, cf->constant_pool[cf->this_class]->tag);
-        return 0; 
-    }
-
-    return 1; 
-}
-
-// Função para validar o super_class
-int validate_super_class(ClassFile *cf) {
-    if (cf->super_class == 0) {
-        if ((cf->access_flags & 0x0200) != 0) {
-            printf("Erro de Validação: O arquivo é uma Interface, portanto super_class não pode ser 0.\n");
-            return 0; 
-        }
-        return 1; 
-    }
-
-    if (cf->super_class >= cf->constant_pool_count) {
-        printf("Erro de Validação: super_class index (%d) fora dos limites da constant pool.\n", cf->super_class);
-        return 0; 
-    }
-
-    if (cf->constant_pool[cf->super_class]->tag != CONSTANT_Class) {
-        printf("Erro de Validação: super_class não aponta para um CONSTANT_Class (tag %d). Tag encontrada: %d\n", 
-                CONSTANT_Class, cf->constant_pool[cf->super_class]->tag);
-        return 0; 
-    }
-
-    return 1; 
-}
-
-// Função para validar interfaces
-int validate_interfaces(ClassFile *cf) {
-    for (int i = 0; i < cf->interfaces_count; i++) {
-        uint16_t interface_idx = cf->interfaces[i];
-
-        if (interface_idx <= 0 || interface_idx >= cf->constant_pool_count) {
-            printf("Erro de Validação: A interface na posição %d aponta para um índice inválido (%d) na constant pool.\n", 
-                   i, interface_idx);
-            return 0; 
-        }
-
-        if (cf->constant_pool[interface_idx]->tag != CONSTANT_Class) {
-            printf("Erro de Validação: A interface na posição %d não aponta para um CONSTANT_Class (tag %d). Tag encontrada: %d\n", 
-                   i, CONSTANT_Class, cf->constant_pool[interface_idx]->tag);
-            return 0; 
-        }
-    }
-
-    return 1; 
-}
-
-// Função para validar fields
-int validate_fields(ClassFile *cf) {
-    for (int i = 0; i < cf->fields_count; i++) {
-        uint16_t name_idx = cf->fields[i].name_index;
-        uint16_t desc_idx = cf->fields[i].descriptor_index;
-
-        if (name_idx == 0 || name_idx >= cf->constant_pool_count) {
-            printf("Erro de Validação: O name_index do field na posição %d aponta para um índice inválido (%d) na constant pool.\n", 
-                   i, name_idx);
-            return 0; 
-        }
-        
-        if (cf->constant_pool[name_idx]->tag != CONSTANT_Utf8) {
-            printf("Erro de Validação: O name_index do field %d não aponta para um CONSTANT_Utf8 (tag %d). Tag encontrada: %d\n", 
-                   i, CONSTANT_Utf8, cf->constant_pool[name_idx]->tag);
-            return 0; 
-        }
-
-        if (desc_idx == 0 || desc_idx >= cf->constant_pool_count) {
-            printf("Erro de Validação: O descriptor_index do field na posição %d aponta para um índice inválido (%d) na constant pool.\n", 
-                   i, desc_idx);
-            return 0; 
-        }
-        
-        if (cf->constant_pool[desc_idx]->tag != CONSTANT_Utf8) {
-            printf("Erro de Validação: O descriptor_index do field %d não aponta para um CONSTANT_Utf8 (tag %d). Tag encontrada: %d\n", 
-                   i, CONSTANT_Utf8, cf->constant_pool[desc_idx]->tag);
-            return 0; 
-        }
-    }
-
-    return 1; 
-}
-
-// Função para validar methods
-int validate_methods(ClassFile *cf) {
-    // Percorre cada method que foi lido
-    for (int i = 0; i < cf->methods_count; i++) {
-        uint16_t name_idx = cf->methods[i].name_index;
-        uint16_t desc_idx = cf->methods[i].descriptor_index;
-
-        if (name_idx == 0 || name_idx >= cf->constant_pool_count) {
-            printf("Erro de Validação: O name_index do method na posição %d aponta para um índice inválido (%d) na constant pool.\n", 
-                   i, name_idx);
-            return 0; 
-        }
-        
-        if (cf->constant_pool[name_idx]->tag != CONSTANT_Utf8) {
-            printf("Erro de Validação: O name_index do method %d não aponta para um CONSTANT_Utf8 (tag %d). Tag encontrada: %d\n", 
-                   i, CONSTANT_Utf8, cf->constant_pool[name_idx]->tag);
-            return 0;
-        }
-
-        if (desc_idx == 0 || desc_idx >= cf->constant_pool_count) {
-            printf("Erro de Validação: O descriptor_index do method na posição %d aponta para um índice inválido (%d) na constant pool.\n", 
-                   i, desc_idx);
-            return 0; 
-        }
-        
-        if (cf->constant_pool[desc_idx]->tag != CONSTANT_Utf8) {
-            printf("Erro de Validação: O descriptor_index do method %d não aponta para um CONSTANT_Utf8 (tag %d). Tag encontrada: %d\n", 
-                   i, CONSTANT_Utf8, cf->constant_pool[desc_idx]->tag);
-            return 0;
-        }
-    }
-
-    return 1; 
-}
-
-// Função para validar attributes
-int validate_attributes(ClassFile *cf) {
-    for (int i = 0; i < cf->attributes_count; i++) {
-        uint16_t name_idx = cf->attributes[i].attribute_name_index;
-
-        if (name_idx == 0 || name_idx >= cf->constant_pool_count) {
-            printf("Erro de Validação: O attribute_name_index do atributo na posição %d aponta para um índice inválido (%d) na constant pool.\n", 
-                   i, name_idx);
-            return 0; 
-        }
-        
-        if (cf->constant_pool[name_idx]->tag != CONSTANT_Utf8) {
-            printf("Erro de Validação: O attribute_name_index do atributo %d não aponta para um CONSTANT_Utf8 (tag %d). Tag encontrada: %d\n", 
-                   i, CONSTANT_Utf8, cf->constant_pool[name_idx]->tag);
-            return 0; 
-        }
-    }
-
-    return 1; 
-}
 
 int read_classfile(ClassFile *cf, FILE *file) {
 
@@ -266,11 +83,6 @@ int read_classfile(ClassFile *cf, FILE *file) {
 
     cf->this_class = byteswap_u2(cf->this_class);
 
-    // Valida 'this_class'
-    if (!validate_this_class(cf)) {
-        return 1; 
-    }
-    
     // Read 'super_class'
     if (fread(&cf->super_class, sizeof(cf->super_class), 1, file) != 1) {
         perror("Erro ao ler 'super_class'");
@@ -278,11 +90,6 @@ int read_classfile(ClassFile *cf, FILE *file) {
     }
 
     cf->super_class = byteswap_u2(cf->super_class);
-
-    // Valida 'super_class'
-    if (!validate_super_class(cf)) {
-        return 1; 
-    }
 
     // Read 'interfaces_count'
     if (fread(&cf->interfaces_count, sizeof(cf->interfaces_count), 1, file) != 1) {
@@ -312,11 +119,6 @@ int read_classfile(ClassFile *cf, FILE *file) {
     } else {
         // Se a classe não implementar nenhuma interface
         cf->interfaces = NULL;
-    }
-
-    // Valida 'interfaces'
-    if (!validate_interfaces(cf)) {
-        return 1; 
     }
 
     // Read 'field_count'
@@ -378,11 +180,6 @@ int read_classfile(ClassFile *cf, FILE *file) {
         cf->fields = NULL;
     }
 
-    // Valida 'fields'
-    if (!validate_fields(cf)) {
-        return 1; 
-    }
-
     // Read 'methods_count'
     if (fread(&cf->methods_count, sizeof(cf->methods_count), 1, file) != 1) {
         perror("Erro ao ler 'methods_count'");
@@ -394,7 +191,7 @@ int read_classfile(ClassFile *cf, FILE *file) {
     // Read methods
     if (cf->methods_count > 0) {
 
-        cf->methods = malloc(sizeof(method_info) * cf->methods_count);
+        cf->methods = malloc(sizeof(field_info) * cf->methods_count);
 
         if (cf->methods == NULL) {
             perror("Erro ao alocar memória para methods");
@@ -438,17 +235,8 @@ int read_classfile(ClassFile *cf, FILE *file) {
                          * Verifica se o atributo é "Code"
                          */
                         if (utf8->length == 4 && strncmp((char*)utf8->bytes, "Code", 4) == 0) {
-                            
-                            long start_pos = ftell(file);
 
-                            cf->methods[i].attributes[j].info = (uint8_t*) read_code_attribute(file);
-
-                            long bytes_read = ftell(file) - start_pos;
-                            long expected_length = cf->methods[i].attributes[j].attribute_length;
-
-                            if (bytes_read < expected_length) {
-                                fseek(file, expected_length - bytes_read, SEEK_CUR);
-                            }
+                            cf->methods[i].attributes[j].info = read_code_attribute(file);
 
                         } else {
 
@@ -468,11 +256,6 @@ int read_classfile(ClassFile *cf, FILE *file) {
         cf->methods = NULL;
     }
 
-    // Valida 'methods'
-    if (!validate_methods(cf)) {
-        return 1; 
-    }
-
     if (fread(&cf->attributes_count, sizeof(cf->attributes_count), 1, file) != 1) {
         perror("Erro ao ler 'attributes_count' global");
         return 1;
@@ -480,10 +263,5 @@ int read_classfile(ClassFile *cf, FILE *file) {
     cf->attributes_count = byteswap_u2(cf->attributes_count);
 
     cf->attributes = read_attributes_array(cf->attributes_count, file);
-
-    // Valida 'attributes'
-    if (!validate_attributes(cf)) {
-        return 1; 
-    }
     return 0;
 }
