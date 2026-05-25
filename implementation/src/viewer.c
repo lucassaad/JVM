@@ -67,16 +67,6 @@ void print_method_access_flags(uint16_t flags) {
     printf("]");
 }
 
-
-void print_utf8_info(void *entry_void) {
-    CONSTANT_Utf8_info *entry = (CONSTANT_Utf8_info *) entry_void;
-    printf("tag    :  %d\n", entry->tag);
-    printf("length :  %d\n", entry->length);
-    printf("string :  %.*s\n", entry->length, entry->bytes);
-
-    return;
-}
-
 void print_general_information(ClassFile *cf) {
     printf("=======================================================\n");
     printf("                  Informação Geral                     \n");
@@ -134,8 +124,9 @@ void print_class_attributes(ClassFile *cf)
             attr->attribute_length
         );
     }
+}
 
-  void print_constant_pool(ClassFile *cf) {
+void print_constant_pool(ClassFile *cf) {
     printf("=== Constant Pool (%d entradas) ===\n", cf->constant_pool_count - 1);
 
     for (int i = 1; i < cf->constant_pool_count; i++) {
@@ -316,7 +307,7 @@ void print_class_attributes(ClassFile *cf)
 }
 
 void print_fields(ClassFile *cf) {
-    printf("=== Fields (%d entradas) ===\n", cf->fields_count);
+    printf("\n=== Fields (%d entradas) ===\n", cf->fields_count);
 
     if (cf->fields_count == 0) {
         printf("  (nenhum field)\n");
@@ -361,7 +352,7 @@ void print_fields(ClassFile *cf) {
 }
 
 void print_methods(ClassFile *cf) {
-    printf("=== Methods (%d entradas) ===\n", cf->methods_count);
+    printf("\n=== Methods (%d entradas) ===\n", cf->methods_count);
 
     if (cf->methods_count == 0) {
         printf("  (nenhum method)\n");

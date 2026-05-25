@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
     // Executa a leitura binária do arquivo .class
     read_classfile(cf, file);
     if (check_constant_pool_references(cf) != 0)
-        printf("erro ASJD AKSDJ ");
+        printf("erro nas referencias da constant pool");
 
     // Fecha o arquivo pois os dados já estão na memória (estrutura cf)
     if (fclose(file) != 0) {
@@ -48,6 +48,11 @@ int main(int argc, char *argv[]) {
 
     // Exibe a primeira parte (Geral e Pool de Constantes)
     print_general_information(cf);
+    print_constant_pool(cf);
+
+    // Exibe fields e methods
+    print_fields(cf);
+    print_methods(cf);
 
     print_class_attributes(cf);
 
