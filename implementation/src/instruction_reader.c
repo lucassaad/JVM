@@ -265,6 +265,13 @@ void read_instructions(ClassFile* cf, Code_attribute* code) {
                 break;
             }
 
+            case 0x10: {
+                int8_t value = (int8_t) code->code[pc + 1];
+                printf("bipush %d\n", value);
+                pc += 2;
+                break;
+            }
+
             default:
                 printf("unknown opcode 0x%02X\n", opcode);
                 pc++;
