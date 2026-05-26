@@ -363,6 +363,40 @@ void print_constant_pool(FILE *out, ClassFile *cf) {
     }
 }
 
+void print_interfaces(FILE *out, ClassFile *cf) {
+    fprintf(out, "=======================================================\n");
+    fprintf(out, "               INTERFACES (%d Entradas)                \n", cf->interfaces_count);
+    fprintf(out, "=======================================================\n");
+
+    if (cf->interfaces_count == 0) {
+        fprintf(out, "  (nenhuma interface)\n\n");
+        return;
+    }
+
+    for (int i = 0; i < cf->interfaces_count; i++) {
+        uint16_t interface_cp_index = cf->interfaces[i];
+
+        cp_info *cp_entry = cf->constant_pool[interface_cp_index];
+        
+        if (cp_entry->tag != CONSTANT_Class) {
+            fprintf(out, "[%d] cp_info #%d <Erro: Tag nao e CONSTANT_Class>\n", i, interface_cp_index);
+            continue;
+        }
+
+        CONSTANT_Class_info *class_info = (CONSTANT_Class_info *)cp_entry->info;
+
+        uint16_t name_index = class_info->name_index;
+        cp_info *utf8_entry = cf->constant_pool[name_index];
+        CONSTANT_Utf8_info *utf8_info = (CONSTANT_Utf8_info *)utf8_entry->info;
+
+        fprintf(out, "[%d] Interface: cp_info #%d\n", i, interface_cp_index);
+        fprintf(out, "    Class name index : cp_info #%d <%.*s>\n", 
+                name_index, utf8_info->length, utf8_info->bytes);
+        fprintf(out, "    Resolved name    : %.*s\n\n", 
+                utf8_info->length, utf8_info->bytes);
+    }
+}
+
 void print_fields(FILE *out, ClassFile *cf) {
     fprintf(out, "=======================================================\n");
     fprintf(out, "               FIELDS (%d Entradas)                    \n", cf->fields_count);

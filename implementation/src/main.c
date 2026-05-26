@@ -61,6 +61,10 @@ int main(int argc, char *argv[]) {
     print_constant_pool(stdout, cf);
     print_constant_pool(arquivo_txt, cf);
 
+    // Exibe as Interfaces
+    print_interfaces(stdout, cf);
+    print_interfaces(arquivo_txt, cf);
+
     // Exibe fields e methods
     print_fields(stdout, cf);
     print_fields(arquivo_txt, cf);

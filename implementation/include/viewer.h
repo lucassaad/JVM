@@ -7,6 +7,7 @@
 // Funções principais de exibição
 void print_general_information(FILE *out, ClassFile *cf);
 void print_constant_pool(FILE *out, ClassFile *cf);
+void print_interfaces(FILE *out, ClassFile *cf);
 void print_fields(FILE *out, ClassFile *cf);
 void print_methods(FILE *out, ClassFile *cf) ;
 
