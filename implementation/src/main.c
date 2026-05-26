@@ -75,34 +75,8 @@ int main(int argc, char *argv[]) {
     print_methods(stdout, cf);
     print_methods(arquivo_txt, cf);
 
-    print_class_attributes(stdout, cf);
-    print_class_attributes(arquivo_txt, cf);
-
-
-    // EXIBIÇÃO DO CODE ATTRIBUTE (Movido para antes dos frees!)
-    printf("\n===== CODE ATTRIBUTES =====\n");
-
-    for (int i = 0; i < cf->methods_count; i++) {
-        method_info *method = &cf->methods[i];
-
-        for (int j = 0; j < method->attributes_count; j++) {
-            attribute_info *attr = &method->attributes[j];
-            uint16_t name_index = attr->attribute_name_index;
-            cp_info *cp_entry = cf->constant_pool[name_index];
-            CONSTANT_Utf8_info *utf8 = (CONSTANT_Utf8_info*) cp_entry->info;
-
-            if (utf8->length == 4 && strncmp((char*)utf8->bytes, "Code", 4) == 0) {
-                printf("\nMethod %d - Code Attribute\n", i);
-                Code_attribute *code = (Code_attribute*) attr->info;
-
-                // Chama a função modificada que faz o disassembly 
-                // Se você alterou para receber cf, use: print_code_attribute(code, cf);
-                // Se manteve a assinatura antiga, use: print_code_attribute(code);
-                print_code_attribute(code); 
-                read_instructions(cf, code);
-            }
-        }
-    }
+    print_attributes_section(stdout, cf);
+    print_attributes_section(arquivo_txt, cf);
 
     // =======================================================
     // LIMPEZA DA MEMÓRIA (Agora no final absoluto do programa)

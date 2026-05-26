@@ -43,24 +43,6 @@ Code_attribute *read_code_attribute(FILE *file)
     return code;
 }
 
-void print_code_attribute(Code_attribute *code)
-{
-    printf("Code Attribute\n");
-
-    printf("max_stack: %u\n", code->max_stack);
-
-    printf("max_locals: %u\n", code->max_locals);
-
-    printf("code_length: %u\n", code->code_length);
-
-    for (uint32_t i = 0; i < code->code_length; i++)
-    {
-        printf("%02X ", code->code[i]);
-    }
-
-    printf("\n");
-}
-
 void free_code_attribute(Code_attribute *code)
 {
     if (code == NULL)
