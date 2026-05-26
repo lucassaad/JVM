@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include "class_file.h"
+#include "code_attribute.h"
 
 // Funções principais de exibição
 void print_general_information(FILE *out, ClassFile *cf);
@@ -18,5 +19,9 @@ const char* get_class_name_string(ClassFile *cf, uint16_t class_index);
 void print_class_attributes(FILE *out, ClassFile *cf);
 void print_field_access_flags(FILE *out, uint16_t flags);
 void print_method_access_flags(FILE *out, uint16_t flags);
+void print_code_attribute(FILE *out, Code_attribute *code);
+void print_all_code_attributes(FILE *out, ClassFile *cf);
+void print_attributes_section(FILE *out, ClassFile *cf);
+void print_specific_attribute_info(FILE *out, ClassFile *cf, attribute_info *attr);
 
 #endif

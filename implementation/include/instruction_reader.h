@@ -5,6 +5,7 @@
 #include "code_attribute.h"
 
 void read_instructions(
+    FILE *out,
     ClassFile* cf,
     Code_attribute* code
 );
