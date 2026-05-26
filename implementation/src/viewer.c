@@ -587,7 +587,7 @@ void print_specific_attribute_info(FILE *out, ClassFile *cf, attribute_info *att
 
 void print_attributes_section(FILE *out, ClassFile *cf) {
     fprintf(out, "=======================================================\n");
-    fprintf(out, "                     ATTRIBUTES                        \n");
+    fprintf(out, "               ATTRIBUTES (%d Entradas)                \n", cf->attributes_count);
     fprintf(out, "=======================================================\n");
 
     int global_attr_idx = 0; 
