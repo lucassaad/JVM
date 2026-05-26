@@ -35,7 +35,11 @@ int main(int argc, char *argv[]) {
     }
 
     // Executa a leitura binária do arquivo .class
-    read_classfile(cf, file);
+    if (read_classfile(cf, file) != 0) {
+        perror("Erro ao ler o .class");
+        return 1;
+    }
+    
     if (check_constant_pool_references(cf) != 0)
         printf("erro nas referencias da constant pool");
 

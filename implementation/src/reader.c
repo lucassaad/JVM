@@ -197,6 +197,9 @@ int read_classfile(ClassFile *cf, FILE *file) {
         return 1;
     }
     cf->magic = byteswap_u4(cf->magic);
+    if (cf->magic != 0xCAFEBABE) {
+        perror("Magic invalido, o arquivo nao e compativel com .class");
+    }
 
     // Read 'minor_version'
     if (fread(&cf->minor_version, sizeof(cf->minor_version), 1, file) != 1) {
@@ -247,7 +250,11 @@ int read_classfile(ClassFile *cf, FILE *file) {
 
         cf->constant_pool[i] = cp_entry;
 
-        if (tag == CONSTANT_Long || tag == CONSTANT_Double) i++; 
+        if (tag == CONSTANT_Long || tag == CONSTANT_Double) {
+            i++; 
+            cf->constant_pool[i] = NULL;
+        }
+            
     }
 
     // Read 'access_flags'
