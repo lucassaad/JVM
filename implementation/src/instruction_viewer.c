@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "../include/instruction_reader.h"
+#include "instruction_viewer.h"
 
-void read_instructions(FILE *out, ClassFile* cf, Code_attribute* code) {
+void view_instructions(FILE *out, ClassFile* cf, Code_attribute* code) {
     (void)cf;
     uint32_t pc = 0;
 
@@ -24,7 +24,7 @@ void read_instructions(FILE *out, ClassFile* cf, Code_attribute* code) {
             case 0x07: fprintf(out, "iconst_4\n"); pc += 1; break;
             case 0x08: fprintf(out, "iconst_5\n"); pc += 1; break;
 
-            // --- CARGA DE VARIÁVEIS LOCAIS (Fixo) ---
+            // CARGA DE VARIÁVEIS LOCAIS (Fixo)
             case 0x1A: fprintf(out, "iload_0\n"); pc += 1; break;
             case 0x1B: fprintf(out, "iload_1\n"); pc += 1; break;
             case 0x1C: fprintf(out, "iload_2\n"); pc += 1; break;
@@ -34,7 +34,7 @@ void read_instructions(FILE *out, ClassFile* cf, Code_attribute* code) {
             case 0x2C: fprintf(out, "aload_2\n"); pc += 1; break;
             case 0x2D: fprintf(out, "aload_3\n"); pc += 1; break;
 
-            // --- ARMAZENAMENTO DE VARIÁVEIS (Fixo) ---
+            // ARMAZENAMENTO DE VARIÁVEIS (Fixo) 
             case 0x3B: fprintf(out, "istore_0\n"); pc += 1; break;
             case 0x3C: fprintf(out, "istore_1\n"); pc += 1; break;
             case 0x3D: fprintf(out, "istore_2\n"); pc += 1; break;
@@ -44,18 +44,18 @@ void read_instructions(FILE *out, ClassFile* cf, Code_attribute* code) {
             case 0x4D: fprintf(out, "astore_2\n"); pc += 1; break;
             case 0x4E: fprintf(out, "astore_3\n"); pc += 1; break;
 
-            // --- OPERAÇÕES MATEMÁTICAS BÁSICAS ---
+            // OPERAÇÕES MATEMÁTICAS BÁSICAS 
             case 0x60: fprintf(out, "iadd\n"); pc += 1; break;
             case 0x64: fprintf(out, "isub\n"); pc += 1; break;
             case 0x68: fprintf(out, "imul\n"); pc += 1; break;
             case 0x6C: fprintf(out, "idiv\n"); pc += 1; break;
 
-            // --- RETORNOS ---
+            // RETORNOS
             case 0xAC: fprintf(out, "ireturn\n"); pc += 1; break;
             case 0xB0: fprintf(out, "areturn\n"); pc += 1; break;
             case 0xB1: fprintf(out, "return\n"); pc += 1; break;
 
-            // --- CARGA/ARMAZENAMENTO COM OPERANDO ---
+            // CARGA/ARMAZENAMENTO COM OPERANDO
             case 0x15: fprintf(out, "iload %u\n", code->code[pc + 1]); pc += 2; break;
             case 0x16: fprintf(out, "lload %u\n", code->code[pc + 1]); pc += 2; break;
             case 0x17: fprintf(out, "fload %u\n", code->code[pc + 1]); pc += 2; break;
@@ -67,7 +67,7 @@ void read_instructions(FILE *out, ClassFile* cf, Code_attribute* code) {
             case 0x39: fprintf(out, "dstore %u\n", code->code[pc + 1]); pc += 2; break;
             case 0x3A: fprintf(out, "astore %u\n", code->code[pc + 1]); pc += 2; break;
 
-            // --- MANIPULAÇÃO DIRETA DA PILHA ---
+            // MANIPULAÇÃO DIRETA DA PILHA 
             case 0x57: fprintf(out, "pop\n"); pc += 1; break;
             case 0x58: fprintf(out, "pop2\n"); pc += 1; break;
             case 0x59: fprintf(out, "dup\n"); pc += 1; break;
@@ -79,7 +79,7 @@ void read_instructions(FILE *out, ClassFile* cf, Code_attribute* code) {
             case 0x5F: fprintf(out, "swap\n"); pc += 1; break;
             case 0xBE: fprintf(out, "arraylength\n"); pc += 1; break;
 
-            // --- MATEMÁTICA AVANÇADA ---
+            // MATEMÁTICA AVANÇADA
             case 0x61: fprintf(out, "ladd\n"); pc += 1; break;
             case 0x62: fprintf(out, "fadd\n"); pc += 1; break;
             case 0x63: fprintf(out, "dadd\n"); pc += 1; break;
@@ -101,7 +101,7 @@ void read_instructions(FILE *out, ClassFile* cf, Code_attribute* code) {
             case 0x76: fprintf(out, "fneg\n"); pc += 1; break;
             case 0x77: fprintf(out, "dneg\n"); pc += 1; break;
 
-            // --- OPERAÇÕES LÓGICAS E DE BITS ---
+            // OPERAÇÕES LÓGICAS E DE BITS
             case 0x78: fprintf(out, "ishl\n"); pc += 1; break;
             case 0x79: fprintf(out, "lshl\n"); pc += 1; break;
             case 0x7A: fprintf(out, "ishr\n"); pc += 1; break;
@@ -115,7 +115,7 @@ void read_instructions(FILE *out, ClassFile* cf, Code_attribute* code) {
             case 0x82: fprintf(out, "ixor\n"); pc += 1; break;
             case 0x83: fprintf(out, "lxor\n"); pc += 1; break;
 
-            // --- CONVERSÕES DE TIPO ---
+            // CONVERSÕES DE TIPO
             case 0x85: fprintf(out, "i2l\n"); pc += 1; break;
             case 0x86: fprintf(out, "i2f\n"); pc += 1; break;
             case 0x87: fprintf(out, "i2d\n"); pc += 1; break;

@@ -4,7 +4,7 @@
 #include "reader.h"
 #include "viewer.h"
 #include "attributes.h"
-#include "instruction_reader.h"
+#include "instruction_viewer.h"
 #include "constant_pool.h"
 #include <string.h>
 
