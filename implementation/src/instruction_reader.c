@@ -4,6 +4,7 @@
 #include "../include/instruction_reader.h"
 
 void read_instructions(FILE *out, ClassFile* cf, Code_attribute* code) {
+    (void)cf;
     uint32_t pc = 0;
 
     while (pc < code->code_length) {

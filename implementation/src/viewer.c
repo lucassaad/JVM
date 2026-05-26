@@ -452,88 +452,6 @@ void print_methods(FILE *out, ClassFile *cf) {
     }
 }
 
-void print_class_attributes(FILE *out, ClassFile *cf)
-{
-    fprintf(out, "=======================================================\n");
-    fprintf(out, "                  CLASS ATTRIBUTES                     \n");
-    fprintf(out, "=======================================================\n");
-
-    for (int i = 0; i < cf->attributes_count; i++) {
-
-        attribute_info *attr =
-            &cf->attributes[i];
-
-        uint16_t name_index =
-            attr->attribute_name_index;
-
-        cp_info *cp =
-            cf->constant_pool[name_index];
-
-        if (cp == NULL)
-            continue;
-
-        if (cp->tag != CONSTANT_Utf8)
-            continue;
-
-        CONSTANT_Utf8_info *utf8 =
-            (CONSTANT_Utf8_info*) cp->info;
-
-        fprintf(out,"\nAttribute %d\n", i);
-
-        fprintf(out,
-            "Name: %.*s\n",
-            utf8->length,
-            utf8->bytes
-        );
-
-        fprintf(out,
-            "Length: %u\n",
-            attr->attribute_length
-        );
-    }
-}
-
-void print_code_attribute(FILE *out, Code_attribute *code)
-{
-    fprintf(out, "Code Attribute\n");
-    fprintf(out, "max_stack: %u\n", code->max_stack);
-    fprintf(out, "max_locals: %u\n", code->max_locals);
-    fprintf(out, "code_length: %u\n", code->code_length);
-
-    for (uint32_t i = 0; i < code->code_length; i++)
-    {
-        fprintf(out, "%02X ", code->code[i]);
-    }
-    fprintf(out, "\n");
-}
-
-void print_all_code_attributes(FILE *out, ClassFile *cf) {
-    fprintf(out, "=======================================================\n");
-    fprintf(out, "                 CODE ATTRIBUTES                       \n");
-    fprintf(out, "=======================================================\n");
-
-    for (int i = 0; i < cf->methods_count; i++) {
-        method_info *method = &cf->methods[i];
-
-        for (int j = 0; j < method->attributes_count; j++) {
-            attribute_info *attr = &method->attributes[j];
-            uint16_t name_index = attr->attribute_name_index;
-            cp_info *cp_entry = cf->constant_pool[name_index];
-            CONSTANT_Utf8_info *utf8 = (CONSTANT_Utf8_info*) cp_entry->info;
-
-            if (utf8->length == 4 && strncmp((char*)utf8->bytes, "Code", 4) == 0) {
-                fprintf(out, "\nMethod %d - Code Attribute\n", i);
-                Code_attribute *code = (Code_attribute*) attr->info;
-
-                print_code_attribute(out, code); 
-                
-                read_instructions(out, cf, code);
-                fprintf(out, "\n");
-            }
-        }
-    }
-}
-
 //--------------------------------------------------------------------------
 void print_specific_attribute_info(FILE *out, ClassFile *cf, attribute_info *attr) {
     cp_info *cp = cf->constant_pool[attr->attribute_name_index];
@@ -546,17 +464,52 @@ void print_specific_attribute_info(FILE *out, ClassFile *cf, attribute_info *att
     fprintf(out, "    Specific Info:\n");
     
     if (utf8->length == 10 && strncmp((char*)utf8->bytes, "SourceFile", 10) == 0) {
-        if (attr->attribute_length == 2 && attr->info != NULL) {
-            uint16_t sourcefile_index = (attr->info[0] << 8) | attr->info[1];
-            CONSTANT_Utf8_info *sf_utf8 = (CONSTANT_Utf8_info *)cf->constant_pool[sourcefile_index]->info;
-            fprintf(out, "        Source file index:    cp_info #%d <%.*s>\n", sourcefile_index, sf_utf8->length, sf_utf8->bytes);
+        SourceFile_attribute *sf = (SourceFile_attribute *)attr->info;
+        CONSTANT_Utf8_info *sf_utf8 = (CONSTANT_Utf8_info *)cf->constant_pool[sf->sourcefile_index]->info;
+        fprintf(out, "        Source file index:    cp_info #%d <%.*s>\n", sf->sourcefile_index, sf_utf8->length, sf_utf8->bytes);
+    } 
+    else if (utf8->length == 13 && strncmp((char*)utf8->bytes, "ConstantValue", 13) == 0) {
+        ConstantValue_attribute *cv = (ConstantValue_attribute *)attr->info;
+        fprintf(out, "        Constant value index: cp_info #%d\n", cv->constantvalue_index);
+    }
+    else if (utf8->length == 10 && strncmp((char*)utf8->bytes, "Exceptions", 10) == 0) {
+        Exceptions_attribute *exc = (Exceptions_attribute *)attr->info;
+        fprintf(out, "        Number of exceptions: %u\n", exc->number_of_exceptions);
+        for (int e = 0; e < exc->number_of_exceptions; e++) {
+            uint16_t idx = exc->exception_index_table[e];
+            CONSTANT_Class_info *cinfo = (CONSTANT_Class_info*)cf->constant_pool[idx]->info;
+            CONSTANT_Utf8_info *cname = (CONSTANT_Utf8_info*)cf->constant_pool[cinfo->name_index]->info;
+            fprintf(out, "        - Exception: cp_info #%d <%.*s>\n", idx, cname->length, cname->bytes);
         }
-    } 
-
-    else if (utf8->length == 10 && strncmp((char*)utf8->bytes, "Deprecated", 10) == 0) {
-        fprintf(out, "        (Atributo Deprecated - sem dados adicionais)\n");
-    } 
-
+    }
+    else if (utf8->length == 12 && strncmp((char*)utf8->bytes, "InnerClasses", 12) == 0) {
+        InnerClasses_attribute *ic = (InnerClasses_attribute *)attr->info;
+        fprintf(out, "        Number of classes: %u\n", ic->number_of_classes);
+        for (int c = 0; c < ic->number_of_classes; c++) {
+            InnerClass_info *cl = &ic->classes[c];
+            fprintf(out, "        - Inner Class Info Index: cp_info #%d\n", cl->inner_class_info_index);
+            fprintf(out, "          Outer Class Info Index: cp_info #%d\n", cl->outer_class_info_index);
+            fprintf(out, "          Inner Name Index:       cp_info #%d\n", cl->inner_name_index);
+            fprintf(out, "          Inner Class Access Flags: 0x%04X\n", cl->inner_class_access_flags);
+        }
+    }
+    else if (utf8->length == 15 && strncmp((char*)utf8->bytes, "LineNumberTable", 15) == 0) {
+        LineNumberTable_attribute *lnt = (LineNumberTable_attribute *)attr->info;
+        fprintf(out, "        Line Number Table Length: %u\n", lnt->line_number_table_length);
+        for (int l = 0; l < lnt->line_number_table_length; l++) {
+            fprintf(out, "        - Start PC: %u, Line Number: %u\n", lnt->line_number_table[l].start_pc, lnt->line_number_table[l].line_number);
+        }
+    }
+    else if (utf8->length == 18 && strncmp((char*)utf8->bytes, "LocalVariableTable", 18) == 0) {
+        LocalVariableTable_attribute *lvt = (LocalVariableTable_attribute *)attr->info;
+        fprintf(out, "        Local Variable Table Length: %u\n", lvt->local_variable_table_length);
+        for (int l = 0; l < lvt->local_variable_table_length; l++) {
+            fprintf(out, "        - Start PC: %u, Length: %u, Name Index: %u, Descriptor Index: %u, Slot Index: %u\n", 
+                    lvt->local_variable_table[l].start_pc, lvt->local_variable_table[l].length, 
+                    lvt->local_variable_table[l].name_index, lvt->local_variable_table[l].descriptor_index, 
+                    lvt->local_variable_table[l].index);
+        }
+    }
     else if (utf8->length == 4 && strncmp((char*)utf8->bytes, "Code", 4) == 0) {
         Code_attribute *code = (Code_attribute *)attr->info;
         fprintf(out, "        max_stack:   %u\n", code->max_stack);
@@ -568,9 +521,40 @@ void print_specific_attribute_info(FILE *out, ClassFile *cf, attribute_info *att
             fprintf(out, "%02X ", code->code[k]);
         }
         fprintf(out, "\n\n        Disassembly:\n");
-
         read_instructions(out, cf, code);
-    } else {
+
+        if (code->exception_table_length > 0) {
+            fprintf(out, "\n        Exception Table:\n");
+            fprintf(out, "        Nr.\tStart PC\tEnd PC\tHandler PC\tCatch Type\n");
+            for (int e = 0; e < code->exception_table_length; e++) {
+                ExceptionTable_info *exc = &code->exception_table[e];
+                fprintf(out, "        %d\t%u\t\t%u\t%u\t\t%u", e, exc->start_pc, exc->end_pc, exc->handler_pc, exc->catch_type);
+                if (exc->catch_type != 0) {
+                    CONSTANT_Class_info *cinfo = (CONSTANT_Class_info*)cf->constant_pool[exc->catch_type]->info;
+                    CONSTANT_Utf8_info *cname = (CONSTANT_Utf8_info*)cf->constant_pool[cinfo->name_index]->info;
+                    fprintf(out, " <%.*s>\n", cname->length, cname->bytes);
+                } else {
+                    fprintf(out, " <Any>\n");
+                }
+            }
+        }
+
+        if (code->attributes_count > 0) {
+            fprintf(out, "\n        Code Sub-Attributes (%d Entradas):\n", code->attributes_count);
+            for (int a = 0; a < code->attributes_count; a++) {
+                attribute_info *sub_attr = &code->attributes[a];
+                CONSTANT_Utf8_info *sub_utf8 = (CONSTANT_Utf8_info*)cf->constant_pool[sub_attr->attribute_name_index]->info;
+                fprintf(out, "        > Sub-Attribute [%02d] %.*s:\n", a, sub_utf8->length, sub_utf8->bytes);
+                
+                // Chamando a própria função para ler o atributo filho
+                print_specific_attribute_info(out, cf, sub_attr); 
+            }
+        }
+    } 
+    else if (utf8->length == 10 && strncmp((char*)utf8->bytes, "Deprecated", 10) == 0) {
+        fprintf(out, "        (Atributo Deprecated - sem dados adicionais)\n");
+    } 
+    else {
         if (attr->attribute_length > 0 && attr->info != NULL) {
             fprintf(out, "        Info Hex Dump:        ");
             uint32_t limit = attr->attribute_length > 30 ? 30 : attr->attribute_length;
@@ -585,7 +569,7 @@ void print_specific_attribute_info(FILE *out, ClassFile *cf, attribute_info *att
     }
 }
 
-void print_attributes_section(FILE *out, ClassFile *cf) {
+void print_attributes(FILE *out, ClassFile *cf) {
     int total_attributes = cf->attributes_count;
     
     for (int i = 0; i < cf->fields_count; i++) {

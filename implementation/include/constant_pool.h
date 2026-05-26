@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include "class_file.h"
 
+// Estruturas do Pool de Constantes
 typedef struct CONSTANT_Class_info{
     uint8_t tag;
     uint16_t name_index;
@@ -114,8 +115,9 @@ typedef struct {
     uint8_t tag;
     uint16_t name_index;
 } CONSTANT_Package_info;
+//---------------------------------------------------------------------------------------
 
-
+// Dicionário de tags usado pela JVM para identificar o tipo de constante lida
 typedef enum cp_tags {
     CONSTANT_Utf8 = 1,
     CONSTANT_Integer = 3,
@@ -136,7 +138,10 @@ typedef enum cp_tags {
     CONSTANT_Package = 20
 } cp_tags;
 
+// Função para ler dinamicamente os bytes do arquivo de acordo com a tag fornecida e retorna a struct apropriada.
 void* constant_pool_reader(cp_tags tag, FILE *file);
+
+// Função para varrer a Constant Pool e garantir que os índices internos estão corretos.
 int check_constant_pool_references(ClassFile *cf);
 
 #endif
