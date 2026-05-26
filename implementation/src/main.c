@@ -53,16 +53,22 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // Exibi as informações Gerais
+    // Exibe as informações Gerais
     print_general_information(stdout, cf);
     print_general_information(arquivo_txt, cf);
-    print_constant_pool(cf);
+
+    // Exibe a Pool de Constantes
+    print_constant_pool(stdout, cf);
+    print_constant_pool(arquivo_txt, cf);
 
     // Exibe fields e methods
-    print_fields(cf);
-    print_methods(cf);
+    print_fields(stdout, cf);
+    print_fields(arquivo_txt, cf);
+    print_methods(stdout, cf);
+    print_methods(arquivo_txt, cf);
 
-    print_class_attributes(cf);
+    print_class_attributes(stdout, cf);
+    print_class_attributes(arquivo_txt, cf);
 
 
     // EXIBIÇÃO DO CODE ATTRIBUTE (Movido para antes dos frees!)
