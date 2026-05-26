@@ -157,8 +157,8 @@ void print_constant_pool(FILE *out, ClassFile *cf) {
             case CONSTANT_Utf8: {
                 CONSTANT_Utf8_info *info = (CONSTANT_Utf8_info *)entry->info;
 
-                fprintf(out,"[%02d] CONSTANT_Utf8_info\n\tLength of byte array: %d\n\tLength of string: %d\n\tString: <%.*s>\n", 
-                       i, info->length, info->length, info->length, info->bytes);
+                fprintf(out,"[%02d] CONSTANT_Utf8_info\n\tLength of byte array: %d\n\tString: <%.*s>\n", 
+                       i, info->length, info->length, info->bytes);
                 break;
             }
             case CONSTANT_Class: {
