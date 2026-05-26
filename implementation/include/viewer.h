@@ -42,9 +42,6 @@ void print_field_access_flags(FILE *out, uint16_t flags);
 // Função auxiliar para exibir as flags de acesso específicas de um method
 void print_method_access_flags(FILE *out, uint16_t flags);
 
-// Função para decodificar os bytes brutos e exibe informações detalhadas de um atributo
-void print_specific_attribute_info(FILE *out, ClassFile *cf, attribute_info *attr);
-
 // Função para decodificar structs de atributos e exibir na tela
 void print_specific_attribute_info(FILE *out, ClassFile *cf, attribute_info *attr);
 

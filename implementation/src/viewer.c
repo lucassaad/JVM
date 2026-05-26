@@ -2,37 +2,38 @@
 #include "viewer.h"
 #include "class_file.h"
 #include "constant_pool.h"
-#include "instruction_reader.h"
+#include "instruction_viewer.h"
 #include <string.h>
 
 // Traduz a versão Major
 const char* get_java_version_string(uint16_t major_version) {
     switch (major_version) {
-        case 45: return "Java 1.1 [Javac 1.1]";
-        case 46: return "Java 1.2 [Javac 1.2]";
-        case 47: return "Java 1.3 [Javac 1.3]";
-        case 48: return "Java 1.4 [Javac 1.4]";
-        case 49: return "Java 5 [Javac 1.5]";
-        case 50: return "Java 6 [Javac 1.6]";
-        case 51: return "Java 7 [Javac 1.7]";
-        case 52: return "Java 8 [Javac 1.8]"; 
-        case 53: return "Java 9 [Javac 9]";
-        case 54: return "Java 10 [Javac 10]";
-        case 55: return "Java 11 [Javac 11]";
-        case 56: return "Java 12 [Javac 12]";
-        case 57: return "Java 13 [Javac 13]";
-        case 58: return "Java 14 [Javac 14]";
-        case 59: return "Java 15 [Javac 15]";
-        case 60: return "Java 16 [Javac 16]";
-        case 61: return "Java 17 [Javac 17]";
-        case 62: return "Java 18 [Javac 18]";
-        case 63: return "Java 19 [Javac 19]";
-        case 64: return "Java 20 [Javac 20]";
-        case 65: return "Java 21 [Javac 21]";
-        case 66: return "Java 22 [Javac 22]";
-        case 67: return "Java 23 [Javac 23]";
-        case 68: return "Java 24 [Javac 24]";
-        case 69: return "Java 25 [Javac 25]";
+        case 45: return "Java 1.1";
+        case 46: return "Java 1.2";
+        case 47: return "Java 1.3";
+        case 48: return "Java 1.4";
+        case 49: return "Java 5";
+        case 50: return "Java 6";
+        case 51: return "Java 7";
+        case 52: return "Java 8"; 
+        case 53: return "Java 9";
+        case 54: return "Java 10";
+        case 55: return "Java 11";
+        case 56: return "Java 12";
+        case 57: return "Java 13";
+        case 58: return "Java 14";
+        case 59: return "Java 15";
+        case 60: return "Java 16";
+        case 61: return "Java 17";
+        case 62: return "Java 18";
+        case 63: return "Java 19";
+        case 64: return "Java 20";
+        case 65: return "Java 21";
+        case 66: return "Java 22";
+        case 67: return "Java 23";
+        case 68: return "Java 24";
+        case 69: return "Java 25";
+        case 70: return "Java 26";
         default: return "Versão Desconhecida";
     }
 }
@@ -81,7 +82,7 @@ const char* get_class_name_string(ClassFile *cf, uint16_t class_index) {
     return name_buffer;
 }
 
-// Traduz as máscaras de bits das Access Flags de um FIELD para texto descritivo
+// Traduz as mascaras de bits das Access Flags de um FIELD para texto descritivo
 void print_field_access_flags(FILE *out, uint16_t flags) {
     fprintf(out,"0x%04X [ ", flags);
     if (flags & 0x0001) fprintf(out,"public ");
@@ -172,11 +173,11 @@ void print_constant_pool(FILE *out, ClassFile *cf) {
             case CONSTANT_Methodref: {
                 CONSTANT_Methodref_info *info = (CONSTANT_Methodref_info *)entry->info;
 
-                // Resolve onde está a classe
+                // Resolve onde esta a classe
                 CONSTANT_Class_info *class_info = (CONSTANT_Class_info *)cf->constant_pool[info->class_index]->info;
                 CONSTANT_Utf8_info *class_name = (CONSTANT_Utf8_info *)cf->constant_pool[class_info->name_index]->info;
 
-                // Resolve onde está o nome, o tipo e o descriptor do método
+                // Resolve onde esta o nome, o tipo e o descriptor do metodo
                 CONSTANT_NameAndType_info *nt_info = (CONSTANT_NameAndType_info *)cf->constant_pool[info->name_and_type_index]->info;
                 CONSTANT_Utf8_info *nt_name = (CONSTANT_Utf8_info *)cf->constant_pool[nt_info->name_index]->info;
                 CONSTANT_Utf8_info *nt_desc = (CONSTANT_Utf8_info *)cf->constant_pool[nt_info->descriptor_index]->info;
@@ -367,7 +368,7 @@ void print_fields(FILE *out, ClassFile *cf) {
         return;
     }
 
-    // O vetor de fields começa no índice 0
+    // O vetor de fields começa no Indice 0
     for (int i = 0; i < cf->fields_count; i++) {
         
         field_info *field = &cf->fields[i];
@@ -375,7 +376,7 @@ void print_fields(FILE *out, ClassFile *cf) {
         CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[field->name_index]->info;
         CONSTANT_Utf8_info *desc = (CONSTANT_Utf8_info *)cf->constant_pool[field->descriptor_index]->info;
 
-        // Título do Field
+        // TItulo do Field
         fprintf(out,"[%d] %.*s\n", i, name->length, name->bytes);
         
         // Detalhes
@@ -414,7 +415,7 @@ void print_methods(FILE *out, ClassFile *cf) {
         return;
     }
 
-    // O vetor de methods começa no índice 0
+    // O vetor de methods começa no Indice 0
     for (int i = 0; i < cf->methods_count; i++) {
         
         method_info *method = &cf->methods[i];
@@ -422,7 +423,7 @@ void print_methods(FILE *out, ClassFile *cf) {
         CONSTANT_Utf8_info *name = (CONSTANT_Utf8_info *)cf->constant_pool[method->name_index]->info;
         CONSTANT_Utf8_info *desc = (CONSTANT_Utf8_info *)cf->constant_pool[method->descriptor_index]->info;
 
-        // Título do Method
+        // TItulo do Method
         fprintf(out,"[%d] %.*s\n", i, name->length, name->bytes);
         
         // Detalhes
@@ -441,8 +442,8 @@ void print_methods(FILE *out, ClassFile *cf) {
             // Busca o nome do atributo na Constant Pool
             CONSTANT_Utf8_info *attr_name = (CONSTANT_Utf8_info *)cf->constant_pool[attr->attribute_name_index]->info;
 
-            // Imprime o sumário de cada atributo
-            fprintf(out,"       -> Attribute [%d]: %.*s\n", j, attr_name->length, attr_name->bytes);
+            // Imprime o sumario de cada atributo
+            fprintf(out,"       Attribute [%d]: %.*s\n", j, attr_name->length, attr_name->bytes);
             fprintf(out,"           Attribute name index: cp_info #%d <%.*s>\n", attr->attribute_name_index, attr_name->length, attr_name->bytes);
             fprintf(out,"           Attribute length:     %u\n", attr->attribute_length);
             fprintf(out,"\n");
@@ -457,54 +458,54 @@ void print_specific_attribute_info(FILE *out, ClassFile *cf, attribute_info *att
     cp_info *cp = cf->constant_pool[attr->attribute_name_index];
     CONSTANT_Utf8_info *utf8 = (CONSTANT_Utf8_info *)cp->info;
     
-    fprintf(out, "    Generic Info:\n");
-    fprintf(out, "        Attribute name index: cp_info #%d <%.*s>\n", attr->attribute_name_index, utf8->length, utf8->bytes);
-    fprintf(out, "        Attribute length:     %u\n", attr->attribute_length);
+    fprintf(out, "    Informacoes Genericas:\n");
+    fprintf(out, "        Indice do nome do atributo: cp_info #%d <%.*s>\n", attr->attribute_name_index, utf8->length, utf8->bytes);
+    fprintf(out, "        Tamanho do atributo:        %u\n", attr->attribute_length);
     
-    fprintf(out, "    Specific Info:\n");
+    fprintf(out, "    Informacoes Especificas:\n");
     
     if (utf8->length == 10 && strncmp((char*)utf8->bytes, "SourceFile", 10) == 0) {
         SourceFile_attribute *sf = (SourceFile_attribute *)attr->info;
         CONSTANT_Utf8_info *sf_utf8 = (CONSTANT_Utf8_info *)cf->constant_pool[sf->sourcefile_index]->info;
-        fprintf(out, "        Source file index:    cp_info #%d <%.*s>\n", sf->sourcefile_index, sf_utf8->length, sf_utf8->bytes);
+        fprintf(out, "        Indice do arquivo fonte:    cp_info #%d <%.*s>\n", sf->sourcefile_index, sf_utf8->length, sf_utf8->bytes);
     } 
     else if (utf8->length == 13 && strncmp((char*)utf8->bytes, "ConstantValue", 13) == 0) {
         ConstantValue_attribute *cv = (ConstantValue_attribute *)attr->info;
-        fprintf(out, "        Constant value index: cp_info #%d\n", cv->constantvalue_index);
+        fprintf(out, "        Indice do valor constante:  cp_info #%d\n", cv->constantvalue_index);
     }
     else if (utf8->length == 10 && strncmp((char*)utf8->bytes, "Exceptions", 10) == 0) {
         Exceptions_attribute *exc = (Exceptions_attribute *)attr->info;
-        fprintf(out, "        Number of exceptions: %u\n", exc->number_of_exceptions);
+        fprintf(out, "        Numero de excecoes:         %u\n", exc->number_of_exceptions);
         for (int e = 0; e < exc->number_of_exceptions; e++) {
             uint16_t idx = exc->exception_index_table[e];
             CONSTANT_Class_info *cinfo = (CONSTANT_Class_info*)cf->constant_pool[idx]->info;
             CONSTANT_Utf8_info *cname = (CONSTANT_Utf8_info*)cf->constant_pool[cinfo->name_index]->info;
-            fprintf(out, "        - Exception: cp_info #%d <%.*s>\n", idx, cname->length, cname->bytes);
+            fprintf(out, "        - Exceção: cp_info #%d <%.*s>\n", idx, cname->length, cname->bytes);
         }
     }
     else if (utf8->length == 12 && strncmp((char*)utf8->bytes, "InnerClasses", 12) == 0) {
         InnerClasses_attribute *ic = (InnerClasses_attribute *)attr->info;
-        fprintf(out, "        Number of classes: %u\n", ic->number_of_classes);
+        fprintf(out, "        Numero de classes: %u\n", ic->number_of_classes);
         for (int c = 0; c < ic->number_of_classes; c++) {
             InnerClass_info *cl = &ic->classes[c];
-            fprintf(out, "        - Inner Class Info Index: cp_info #%d\n", cl->inner_class_info_index);
-            fprintf(out, "          Outer Class Info Index: cp_info #%d\n", cl->outer_class_info_index);
-            fprintf(out, "          Inner Name Index:       cp_info #%d\n", cl->inner_name_index);
-            fprintf(out, "          Inner Class Access Flags: 0x%04X\n", cl->inner_class_access_flags);
+            fprintf(out, "        - Indice de Info da Classe Interna:  cp_info #%d\n", cl->inner_class_info_index);
+            fprintf(out, "          Indice de Info da Classe Externa:  cp_info #%d\n", cl->outer_class_info_index);
+            fprintf(out, "          Indice do Nome Interno:            cp_info #%d\n", cl->inner_name_index);
+            fprintf(out, "          Flags de Acesso da Classe Interna: 0x%04X\n", cl->inner_class_access_flags);
         }
     }
     else if (utf8->length == 15 && strncmp((char*)utf8->bytes, "LineNumberTable", 15) == 0) {
         LineNumberTable_attribute *lnt = (LineNumberTable_attribute *)attr->info;
-        fprintf(out, "        Line Number Table Length: %u\n", lnt->line_number_table_length);
+        fprintf(out, "        Tamanho da Tabela de Numeros de Linha: %u\n", lnt->line_number_table_length);
         for (int l = 0; l < lnt->line_number_table_length; l++) {
-            fprintf(out, "        - Start PC: %u, Line Number: %u\n", lnt->line_number_table[l].start_pc, lnt->line_number_table[l].line_number);
+            fprintf(out, "        - PC Inicial: %u, Numero da Linha: %u\n", lnt->line_number_table[l].start_pc, lnt->line_number_table[l].line_number);
         }
     }
     else if (utf8->length == 18 && strncmp((char*)utf8->bytes, "LocalVariableTable", 18) == 0) {
         LocalVariableTable_attribute *lvt = (LocalVariableTable_attribute *)attr->info;
-        fprintf(out, "        Local Variable Table Length: %u\n", lvt->local_variable_table_length);
+        fprintf(out, "        Tamanho da Tabela de Variaveis Locais: %u\n", lvt->local_variable_table_length);
         for (int l = 0; l < lvt->local_variable_table_length; l++) {
-            fprintf(out, "        - Start PC: %u, Length: %u, Name Index: %u, Descriptor Index: %u, Slot Index: %u\n", 
+            fprintf(out, "        - PC Inicial: %u, Tamanho: %u, Indice do Nome: %u, Indice do Descritor: %u, Indice do Slot: %u\n", 
                     lvt->local_variable_table[l].start_pc, lvt->local_variable_table[l].length, 
                     lvt->local_variable_table[l].name_index, lvt->local_variable_table[l].descriptor_index, 
                     lvt->local_variable_table[l].index);
@@ -512,20 +513,20 @@ void print_specific_attribute_info(FILE *out, ClassFile *cf, attribute_info *att
     }
     else if (utf8->length == 4 && strncmp((char*)utf8->bytes, "Code", 4) == 0) {
         Code_attribute *code = (Code_attribute *)attr->info;
-        fprintf(out, "        max_stack:   %u\n", code->max_stack);
-        fprintf(out, "        max_locals:  %u\n", code->max_locals);
-        fprintf(out, "        code_length: %u\n", code->code_length);
+        fprintf(out, "        max_stack:    %u\n", code->max_stack);
+        fprintf(out, "        max_locals:    %u\n", code->max_locals);
+        fprintf(out, "        code_length:   %u\n", code->code_length);
         
-        fprintf(out, "        Hex Dump:    ");
+        fprintf(out, "        Dump Hexadecimal: ");
         for (uint32_t k = 0; k < code->code_length; k++) {
             fprintf(out, "%02X ", code->code[k]);
         }
-        fprintf(out, "\n\n        Disassembly:\n");
-        read_instructions(out, cf, code);
+        fprintf(out, "\n\n        Desmontagem (Disassembly):\n");
+        view_instructions(out, cf, code);
 
         if (code->exception_table_length > 0) {
-            fprintf(out, "\n        Exception Table:\n");
-            fprintf(out, "        Nr.\tStart PC\tEnd PC\tHandler PC\tCatch Type\n");
+            fprintf(out, "\n        Tabela de Excecoes:\n");
+            fprintf(out, "        Nr.\tPC Inicial\tPC Final\tPC Handler\tTipo Catch\n");
             for (int e = 0; e < code->exception_table_length; e++) {
                 ExceptionTable_info *exc = &code->exception_table[e];
                 fprintf(out, "        %d\t%u\t\t%u\t%u\t\t%u", e, exc->start_pc, exc->end_pc, exc->handler_pc, exc->catch_type);
@@ -534,17 +535,17 @@ void print_specific_attribute_info(FILE *out, ClassFile *cf, attribute_info *att
                     CONSTANT_Utf8_info *cname = (CONSTANT_Utf8_info*)cf->constant_pool[cinfo->name_index]->info;
                     fprintf(out, " <%.*s>\n", cname->length, cname->bytes);
                 } else {
-                    fprintf(out, " <Any>\n");
+                    fprintf(out, " <Qualquer>\n");
                 }
             }
         }
 
         if (code->attributes_count > 0) {
-            fprintf(out, "\n        Code Sub-Attributes (%d Entradas):\n", code->attributes_count);
+            fprintf(out, "\n        Sub-Atributos de Code (%d Entradas):\n", code->attributes_count);
             for (int a = 0; a < code->attributes_count; a++) {
                 attribute_info *sub_attr = &code->attributes[a];
                 CONSTANT_Utf8_info *sub_utf8 = (CONSTANT_Utf8_info*)cf->constant_pool[sub_attr->attribute_name_index]->info;
-                fprintf(out, "        > Sub-Attribute [%02d] %.*s:\n", a, sub_utf8->length, sub_utf8->bytes);
+                fprintf(out, "        [%02d] Sub-Atributo %.*s:\n", a, sub_utf8->length, sub_utf8->bytes);
                 
                 // Chamando a própria função para ler o atributo filho
                 print_specific_attribute_info(out, cf, sub_attr); 
@@ -556,7 +557,7 @@ void print_specific_attribute_info(FILE *out, ClassFile *cf, attribute_info *att
     } 
     else {
         if (attr->attribute_length > 0 && attr->info != NULL) {
-            fprintf(out, "        Info Hex Dump:        ");
+            fprintf(out, "        Dump Hexadecimal da Info: ");
             uint32_t limit = attr->attribute_length > 30 ? 30 : attr->attribute_length;
             for (uint32_t k = 0; k < limit; k++) {
                 fprintf(out, "%02X ", ((uint8_t*)attr->info)[k]);
