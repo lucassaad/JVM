@@ -3,7 +3,7 @@
 #include "class_file.h"
 #include "reader.h"
 #include "viewer.h"
-#include "code_attribute.h"
+#include "attributes.h"
 #include "instruction_reader.h"
 #include "constant_pool.h"
 #include <string.h>
@@ -75,8 +75,8 @@ int main(int argc, char *argv[]) {
     print_methods(stdout, cf);
     print_methods(arquivo_txt, cf);
 
-    print_attributes_section(stdout, cf);
-    print_attributes_section(arquivo_txt, cf);
+    print_attributes(stdout, cf);
+    print_attributes(arquivo_txt, cf);
 
     // =======================================================
     // LIMPEZA DA MEMÓRIA (Agora no final absoluto do programa)

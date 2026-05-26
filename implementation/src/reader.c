@@ -4,11 +4,12 @@
 
 #include "reader.h"
 #include "utils.h"
-#include "code_attribute.h"
+#include "attributes.h"
 #include "constant_pool.h"
+#include "attributes.h"
 
 // Função auxiliar para ler um array de atributos genérico
-attribute_info* read_attributes_array(uint16_t count, FILE *file) {
+attribute_info* read_attributes_array(ClassFile *cf, uint16_t count, FILE *file) {
     if (count == 0) return NULL;
 
     attribute_info *attrs = malloc(sizeof(attribute_info) * count);
@@ -24,16 +25,16 @@ attribute_info* read_attributes_array(uint16_t count, FILE *file) {
         fread(&attrs[j].attribute_length, sizeof(uint32_t), 1, file);
         attrs[j].attribute_length = byteswap_u4(attrs[j].attribute_length);
         
-        if (attrs[j].attribute_length > 0) {
-            attrs[j].info = malloc(attrs[j].attribute_length);
-            if (attrs[j].info == NULL) {
-                perror("Erro ao alocar memória para dados do atributo");
-                return NULL;
-            }
-            fread(attrs[j].info, 1, attrs[j].attribute_length, file);
-        } else {
-            attrs[j].info = NULL;
-        }
+        cp_info *cp_entry = cf->constant_pool[attrs[j].attribute_name_index];
+        CONSTANT_Utf8_info *utf8 = (CONSTANT_Utf8_info *)cp_entry->info;
+
+        char *attr_name = malloc(utf8->length + 1);
+        memcpy(attr_name, utf8->bytes, utf8->length);
+        attr_name[utf8->length] = '\0';
+
+        attrs[j].info = read_specific_attribute_info(cf, file, attr_name, attrs[j].attribute_length);
+
+        free(attr_name); 
     }
     return attrs;
 }
@@ -355,29 +356,7 @@ int read_classfile(ClassFile *cf, FILE *file) {
             cf->fields[i].attributes_count = byteswap_u2(cf->fields[i].attributes_count);
 
             // Leitura dos atributos do field
-            if (cf->fields[i].attributes_count > 0) {
-                cf->fields[i].attributes = malloc(sizeof(attribute_info) * cf->fields[i].attributes_count);
-
-                for (int j = 0; j < cf->fields[i].attributes_count; j++) {
-                    fread(&cf->fields[i].attributes[j].attribute_name_index, sizeof(uint16_t), 1, file);
-                    cf->fields[i].attributes[j].attribute_name_index = byteswap_u2(cf->fields[i].attributes[j].attribute_name_index);
-
-                    fread(&cf->fields[i].attributes[j].attribute_length, sizeof(uint32_t), 1, file);
-                    cf->fields[i].attributes[j].attribute_length = byteswap_u4(cf->fields[i].attributes[j].attribute_length);
-
-                    if (cf->fields[i].attributes[j].attribute_length > 0) {
-                        cf->fields[i].attributes[j].info = malloc(cf->fields[i].attributes[j].attribute_length);
-                        fread(cf->fields[i].attributes[j].info, 1, cf->fields[i].attributes[j].attribute_length, file);
-                    } else {
-
-                        cf->fields[i].attributes[j].info = NULL;
-                    }
-                }
-
-            } else {
-
-                cf->fields[i].attributes = NULL;
-            }
+            cf->fields[i].attributes = read_attributes_array(cf, cf->fields[i].attributes_count, file);
         }
 
     } else {
@@ -423,53 +402,7 @@ int read_classfile(ClassFile *cf, FILE *file) {
             cf->methods[i].attributes_count = byteswap_u2(cf->methods[i].attributes_count);
 
             // Leitura dos atributos do method
-            if (cf->methods[i].attributes_count > 0) {
-                cf->methods[i].attributes = malloc(sizeof(attribute_info) * cf->methods[i].attributes_count);
-
-                for (int j = 0; j < cf->methods[i].attributes_count; j++) {
-                    fread(&cf->methods[i].attributes[j].attribute_name_index, sizeof(uint16_t), 1, file);
-                    cf->methods[i].attributes[j].attribute_name_index = byteswap_u2(cf->methods[i].attributes[j].attribute_name_index);
-
-                    fread(&cf->methods[i].attributes[j].attribute_length, sizeof(uint32_t), 1, file);
-                    cf->methods[i].attributes[j].attribute_length = byteswap_u4(cf->methods[i].attributes[j].attribute_length);
-
-                    if (cf->methods[i].attributes[j].attribute_length > 0) {
-
-                        uint16_t name_index = cf->methods[i].attributes[j].attribute_name_index;
-
-                        cp_info* cp_entry = cf->constant_pool[name_index];
-
-                        CONSTANT_Utf8_info* utf8 = (CONSTANT_Utf8_info*) cp_entry->info;
-
-                        /*
-                         * Verifica se o atributo é "Code"
-                         */
-                        if (utf8->length == 4 && strncmp((char*)utf8->bytes, "Code", 4) == 0) {
-                            
-                            long start_pos = ftell(file);
-
-                            cf->methods[i].attributes[j].info = (uint8_t*) read_code_attribute(file);
-
-                            long bytes_read = ftell(file) - start_pos;
-                            long expected_length = cf->methods[i].attributes[j].attribute_length;
-
-                            if (bytes_read < expected_length) {
-                                fseek(file, expected_length - bytes_read, SEEK_CUR);
-                            }
-
-                        } else {
-
-                            cf->methods[i].attributes[j].info = malloc(cf->methods[i].attributes[j].attribute_length);
-                            fread(cf->methods[i].attributes[j].info, 1, cf->methods[i].attributes[j].attribute_length, file);
-                        }
-
-                    } else {
-                        cf->methods[i].attributes[j].info = NULL;
-                    }
-                }
-            } else {
-                cf->methods[i].attributes = NULL;
-            }
+            cf->methods[i].attributes = read_attributes_array(cf, cf->methods[i].attributes_count, file);
         }
     } else {
         cf->methods = NULL;
@@ -486,7 +419,7 @@ int read_classfile(ClassFile *cf, FILE *file) {
     }
     cf->attributes_count = byteswap_u2(cf->attributes_count);
 
-    cf->attributes = read_attributes_array(cf->attributes_count, file);
+    cf->attributes = read_attributes_array(cf, cf->attributes_count, file);
 
     // Valida 'attributes'
     if (!validate_attributes(cf)) {
