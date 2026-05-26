@@ -37,12 +37,7 @@ int main(int argc, char *argv[]) {
     // Executa a leitura binária do arquivo .class
     read_classfile(cf, file);
     if (check_constant_pool_references(cf) != 0)
-        printf("erro ASJD AKSDJ ");
-
-    printf("DEBUG: methods_count = %d\n", cf->methods_count);
-    for (int i = 0; i < cf->methods_count; i++) {
-        printf("DEBUG: method %d, attributes_count = %d\n", i, cf->methods[i].attributes_count);
-    }
+        printf("erro nas referencias da constant pool");
 
     // Fecha o arquivo pois os dados já estão na memória (estrutura cf)
     if (fclose(file) != 0) {
@@ -61,6 +56,14 @@ int main(int argc, char *argv[]) {
     // Exibi as informações Gerais
     print_general_information(stdout, cf);
     print_general_information(arquivo_txt, cf);
+    print_constant_pool(cf);
+
+    // Exibe fields e methods
+    print_fields(cf);
+    print_methods(cf);
+
+    print_class_attributes(cf);
+
 
     // EXIBIÇÃO DO CODE ATTRIBUTE (Movido para antes dos frees!)
     printf("\n===== CODE ATTRIBUTES =====\n");
