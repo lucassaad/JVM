@@ -308,7 +308,7 @@ O campo `attribute_name_index` deve apontar para uma entrada `CONSTANT_Utf8`, qu
 
 ## Atributo `Code`
 
-O atributo `Code` e especial porque contem o bytecode executavel de um metodo. Quando `read_classfile` esta lendo os atributos de um metodo, ele resolve o nome do atributo na constant pool. Se o nome for `"Code"`, chama `read_code_attribute`, em `src/code_attribute.c`.
+O atributo `Code` é especial porque contém o bytecode executável de um método. Quando o programa está lendo os atributos e identifica o nome "**Code**" através da Constant Pool, ele direciona a extração para o arquivo `src/attributes.c` (dentro da função `read_specific_attribute_info`).
 
 A estrutura usada no projeto e:
 
@@ -318,23 +318,31 @@ typedef struct {
     uint16_t max_locals;
     uint32_t code_length;
     uint8_t *code;
+    uint16_t exception_table_length;
+    ExceptionTable_info *exception_table;
+    uint16_t attributes_count;
+    attribute_info *attributes;
 } Code_attribute;
 ```
 
-A especificacao define mais campos dentro de `Code`, como `exception_table` e atributos internos. A implementacao atual le:
+Diferente de implementações mais simples que apenas pulam partes complexas do arquivo, a nossa implementação realiza a leitura completa e profunda do atributo Code. Ela extrai:
 
-- `max_stack`;
-- `max_locals`;
-- `code_length`;
-- array `code`.
+- `max_stack`: profundidade máxima da pilha de operandos;
 
-Depois disso, ela pula a `exception_table` e os subatributos internos, como `LineNumberTable` ou `LocalVariableTable`.
+- `max_locals`: quantidade máxima de variáveis locais alocadas;
+
+- `code_length` e `code`: o array contendo os opcodes e operandos brutos do método;
+
+- `exception_table`: tabela de tratamento de erros (try-catch), lendo e armazenando com precisão os ponteiros de instrução (start_pc, end_pc, handler_pc e catch_type);
+
+- Sub-atributos aninhados: através de uma chamada recursiva inteligente para read_attributes_array, o programa desce mais um nível na árvore estrutural para ler e desempacotar sub-atributos úteis para debug, como o LineNumberTable e o LocalVariableTable.
+
 
 ## Bytecode e Instrucoes
 
 O array `code` do atributo `Code` contem instrucoes da JVM. Cada instrucao comeca por um opcode `u1`, seguido ou nao por operandos.
 
-A funcao `read_instructions`, em `src/instruction_reader.c`, percorre esse array usando um contador `pc`:
+A funcao `read_instructions`, em `src/instruction_viewer.c`, percorre esse array usando um contador `pc`:
 
 ```c
 uint32_t pc = 0;
@@ -360,15 +368,21 @@ unknown opcode 0xXX
 
 ## Exibicao dos Dados
 
-As funcoes de exibicao estao concentradas em `src/viewer.c`:
+As funções de formatação e exibição visual estão concentradas em `src/viewer.c`. Um grande diferencial da arquitetura atual é que todas essas funções recebem um ponteiro `FILE *out`, permitindo que o relatório seja gerado tanto no terminal (`stdout`) quanto exportado para o arquivo `saida_exibidor.txt` simultaneamente.
 
-- `print_general_information`: mostra cabecalho geral do arquivo;
-- `print_constant_pool`: imprime as entradas da constant pool, resolvendo referencias quando possivel;
-- `print_fields`: imprime fields e atributos;
-- `print_methods`: imprime methods e atributos;
-- `print_class_attributes`: imprime atributos globais da classe.
+As principais funções são:
 
-O arquivo `src/main.c` tambem percorre os metodos para localizar atributos `Code`, imprimir seus metadados e chamar `read_instructions`.
+- **`print_general_information`**: Mostra o cabeçalho geral do arquivo, incluindo Magic Number, versões, flags de acesso traduzidas e os nomes resolvidos da própria classe e de sua superclasse.
+
+- **`print_constant_pool`**: Imprime as entradas da Constant Pool, resolvendo a fundo as referências indiretas para exibir os nomes reais em vez de apenas os índices numéricos.
+
+- **`print_interfaces`**: Lista os índices e os nomes resolvidos de todas as interfaces implementadas.
+
+- **`print_fields` e `print_methods`**: Exibem as variáveis e funções da classe, traduzindo as Access Flags (ex: `public static`) e listando o sumário de seus respectivos atributos.
+
+- **`print_attributes`**: Agrega e numera sequencialmente todos os atributos encontrados no `.class` (sejam eles pertencentes à Classe, aos Fields ou aos Methods), invocando a leitura específica para cada um.
+
+- **`print_specific_attribute_info`**: Função central e recursiva responsável por formatar os dados de cada atributo (como `SourceFile`, `InnerClasses`, `LineNumberTable`, etc.). É esta função que, ao identificar o atributo `Code`, exibe o Hex Dump, lê a tabela de exceções, formata os sub-atributos e invoca `view_instructions` (o Disassembler) para exibir o bytecode traduzido.
 
 ## Validacoes Implementadas
 
