@@ -468,10 +468,10 @@ Este e o ponto de entrada do programa. Ele nao conhece todos os detalhes interno
 3. aloca uma struct `ClassFile`;
 4. chama `read_classfile` para preencher a struct;
 5. chama `check_constant_pool_references` para validar referencias internas da constant pool;
-6. chama as funcoes de exibicao em `viewer.c`;
-7. percorre os metodos para encontrar atributos chamados `"Code"`;
-8. imprime o conteudo do atributo `Code` e chama `view_instructions`;
-9. libera a memoria da constant pool e da struct principal.
+6. abre o arquivo `saida_exibidor.txt` para exportacao de relatorio;
+7. chama as funcoes de exibicao em `viewer.c` (passando o terminal `stdout` e o arquivo `.txt`);
+8. invoca a rotina cirurgica `deep_free` (em `utils.c`) para liberar toda a arvore de memoria alocada;
+9. encerra o programa.
 
 Em termos da especificacao, `main.c` e o controlador que pega a estrutura `ClassFile` completa ja lida da memoria e decide quais partes serao exibidas para o usuario.
 
@@ -633,6 +633,8 @@ uint32_t byteswap_u4(uint32_t val);
 A especificacao define que valores multibyte do `.class` sao big-endian. Como a maquina pode usar outra ordem interna de bytes, `utils.c` converte os valores lidos para que o restante do programa trabalhe com inteiros corretos.
 
 Sem essas funcoes, campos como `major_version`, `constant_pool_count`, indices da constant pool e tamanhos de atributos poderiam aparecer invertidos.
+
+Além da conversão de Endianness, este arquivo abriga a função `deep_free`. Como a estrutura do `.class` é uma árvore complexa (Classes contêm Métodos, que contêm Atributos, que contêm Sub-Atributos), o `deep_free` navega por todos os ponteiros alocados garantindo que não haja vazamento de memória (*memory leaks*) ao encerrar a execução.
 
 ## Como os Arquivos Trabalham Juntos
 
