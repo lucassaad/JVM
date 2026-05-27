@@ -300,7 +300,7 @@ No projeto:
 typedef struct {
     uint16_t attribute_name_index;
     uint32_t attribute_length;
-    uint8_t *info;
+    void *info;
 } attribute_info;
 ```
 
@@ -391,7 +391,6 @@ A implementacao e um leitor/exibidor parcial do formato `.class`. Alguns pontos 
 - nao valida completamente descritores de fields e methods;
 - nao valida todos os bits reservados de `access_flags`;
 - nao interpreta todos os atributos predefinidos pela especificacao;
-- em `Code`, pula `exception_table` e subatributos em vez de armazenar essas estruturas;
 - nao implementa todos os opcodes da JVM;
 - nao executa bytecode, apenas exibe;
 - nao verifica todos os constraints de bytecode descritos pela especificacao.
@@ -400,38 +399,45 @@ Mesmo assim, o projeto cobre a estrutura essencial do `ClassFile`: cabecalho, co
 
 ## Como Compilar e Executar
 
-Dentro da pasta `implementation/`:
+O projeto utiliza o `make` para automatizar o processo de compilação.
 
-```sh
+1. **Compilar o projeto:**
+Na raiz do diretório `implementation/`, execute:
+```bash
 make
 ```
 
-Para executar com o arquivo padrao `Main.class`:
 
-```sh
+2. **Rodar com o arquivo de teste padrão:**
+O Makefile possui uma regra para testar rapidamente a execução (geralmente apontando para um arquivo como `Main.class`):
+```bash
 make run
 ```
 
-Tambem e possivel executar o binario gerado passando um `.class` especifico:
 
-```sh
-./bin/leitor_exibidor exemplos/fatorial.class
+3. **Analisar um arquivo `.class` específico:**
+Graças à configuração do Makefile, você pode passar o caminho do arquivo .class diretamente:
+```bash
+make run caminhos/para/seu_arquivo.class
+
 ```
 
 ## Mapa dos Arquivos
 
 | Arquivo | Responsabilidade |
 | --- | --- |
+| `include/attributes.h` | Define as structs principais relativas a attributes. |
 | `include/class_file.h` | Define as structs principais do formato `.class`. |
 | `include/constant_pool.h` | Define tags e structs da constant pool. |
 | `include/reader.h` | Declara funcoes de leitura e validacao. |
-| `include/code_attribute.h` | Define a struct e as funcoes do atributo `Code`. |
-| `include/instruction_reader.h` | Declara o leitor de instrucoes bytecode. |
+| `include/instruction_viewer.h` | Declara o leitor de instrucoes bytecode. |
+| `include/viewer.h` | Declara as informacoes lidas em formato legivel. |
+| `include/utils.h` | Declara funcoes auxiliares, como conversao de endianness. |
+| `src/attributes.c` | Implementa funções relativas a attributes. |
 | `src/main.c` | Orquestra leitura, validacao, exibicao e limpeza. |
 | `src/reader.c` | Le a estrutura `ClassFile` na ordem da especificacao. |
 | `src/constant_pool.c` | Le e valida entradas da constant pool. |
-| `src/code_attribute.c` | Le e exibe o atributo `Code`. |
-| `src/instruction_reader.c` | Faz o disassembly parcial dos opcodes. |
+| `src/instruction_viewer.c` | Faz o disassembly parcial dos opcodes. |
 | `src/viewer.c` | Exibe as informacoes lidas em formato legivel. |
 | `src/utils.c` | Contem funcoes auxiliares, como conversao de endianness. |
 
@@ -540,86 +546,29 @@ Essa funcao percorre a constant pool e valida se os indices internos apontam par
 
 Essa validacao corresponde a parte das regras de consistencia do formato descritas pela especificacao. Ela nao substitui o verificador completo da JVM, mas evita que o exibidor interprete referencias absurdas ou com tags erradas.
 
-### `src/code_attribute.c`
+### `src/attributes.c`
 
-Este arquivo trata o atributo `Code`, definido pela especificacao como o atributo que aparece em metodos concretos e contem as instrucoes da JVM.
+Esta é a nossa "Fábrica de Atributos", responsável por decodificar as estruturas de tamanho variável. Na JVM, atributos podem estar nas Classes, nos Fields, nos Methods e até dentro de outros atributos!
 
-A funcao:
-
-```c
-Code_attribute *read_code_attribute(FILE *file);
-```
-
-le:
-
-- `max_stack`: profundidade maxima da pilha de operandos usada pelo metodo;
-- `max_locals`: quantidade maxima de variaveis locais usadas;
-- `code_length`: quantidade de bytes de bytecode;
-- `code`: array com os opcodes e operandos.
-
-Depois disso, o arquivo ainda encontra duas partes do atributo `Code` previstas na especificacao:
-
-- `exception_table`;
-- atributos internos do `Code`, como `LineNumberTable` e `LocalVariableTable`.
-
-Na implementacao atual, essas duas partes sao puladas com `fseek`. Ou seja, o leitor preserva a posicao correta no arquivo, mas nao armazena nem exibe essas estruturas.
-
-A funcao `print_code_attribute` imprime os metadados principais e os bytes crus do bytecode em hexadecimal. A funcao `free_code_attribute` libera a memoria alocada para o atributo.
-
-### `src/instruction_reader.c`
-
-Este arquivo transforma o array de bytes do atributo `Code` em uma listagem parecida com um disassembly.
-
-A funcao:
+A função principal:
 
 ```c
-void read_instructions(ClassFile *cf, Code_attribute *code);
+void* read_specific_attribute_info(ClassFile *cf, FILE *file, const char* attr_name, uint32_t attr_length);
 ```
 
-percorre `code->code` usando o contador `pc`, que representa o program counter dentro do metodo. Em cada posicao:
+Compara a string com o nome do atributo e desempacota os dados específicos. O grande destaque desta implementação é o atributo Code. Quando ele é encontrado, o código não apenas lê o tamanho do bytecode, mas também aloca e processa recursivamente os seus sub-atributos, como o LineNumberTable e o LocalVariableTable, além da Tabela de Exceções. Diferente de analisadores mais simples, nada é apenas "pulado" com fseek.
 
-1. le o opcode;
-2. identifica a instrucao por um `switch`;
-3. imprime o nome da instrucao;
-4. le operandos quando necessario;
-5. avanca `pc` pelo tamanho correto.
+### `src/instruction_viewer.c`
 
-Exemplos:
+O nosso Disassembler embutido. Ele traduz os opcodes brutos (hexadecimal) em instruções compreensíveis por humanos.
 
-- `iconst_0` nao possui operandos, entao avanca 1 byte;
-- `bipush` possui um operando de 1 byte, entao avanca 2 bytes;
-- `ldc_w` possui indice de 2 bytes para a constant pool, entao avanca 3 bytes;
-- `invokeinterface` possui operandos extras, entao avanca 5 bytes.
-
-Embora a funcao receba `ClassFile *cf`, atualmente ela imprime principalmente os indices da constant pool, como `#5`, em vez de resolver todos eles para nomes. A resolucao completa desses indices poderia ser uma extensao futura.
-
-Quando encontra um opcode que nao esta no `switch`, imprime `unknown opcode 0xXX` e avanca um byte. Isso permite que a leitura continue mesmo quando uma instrucao ainda nao foi implementada.
-
-### `src/instructions.c`
-
-Este arquivo define uma tabela de 256 posicoes chamada `opcode_table`, uma para cada opcode possivel de 1 byte.
-
-Cada entrada possui:
+A função:
 
 ```c
-typedef struct {
-    char *name;
-    int operand_bytes;
-} instruction;
+void view_instructions(FILE *out, ClassFile* cf, Code_attribute* code);
 ```
 
-Assim, a tabela associa o valor hexadecimal do opcode a:
-
-- um mnemonico, como `iadd`, `aload_0`, `invokevirtual`;
-- a quantidade de bytes de operandos que normalmente acompanham a instrucao.
-
-Essa tabela reflete a lista de instrucoes da JVM descrita na especificacao. Por exemplo:
-
-- `0x60` corresponde a `iadd`;
-- `0xB6` corresponde a `invokevirtual`;
-- `0xBB` corresponde a `new`.
-
-No fluxo atual do programa, o disassembly chamado por `main.c` esta em `instruction_reader.c`, que usa um `switch` manual. Portanto, `instructions.c` funciona como uma base de dados de opcodes disponivel no projeto, mas ainda nao e o mecanismo principal usado para imprimir as instrucoes. Uma melhoria natural seria fazer `instruction_reader.c` consultar `opcode_table` para reduzir repeticao e centralizar os nomes das instrucoes.
+Usa um Program Counter (pc) para varrer o array de bytes. Um grande switch/case traduz o opcode para o seu mnemônico correspondente (ex: 0xB6 vira invokevirtual). Fundamentalmente, ele sabe quantos bytes "pular" após cada instrução dependendo se ela possui operandos (ex: aload_0 avança 1 byte, enquanto bipush avança 2 bytes). Opcodes desconhecidos são exibidos de forma segura para não quebrar a leitura.
 
 ### `src/viewer.c`
 
@@ -670,31 +619,29 @@ O fluxo completo pode ser entendido assim:
 
 ```text
 main.c
-  abre o .class
-  chama reader.c
+ ├── Abre o arquivo binário
+ └── Chama reader.c
 
-reader.c
-  le ClassFile na ordem oficial
-  chama constant_pool.c para cada entrada da constant pool
-  chama code_attribute.c quando encontra atributo Code
+     reader.c
+      ├── Lê as variáveis globais (Magic Number, versões)
+      ├── Chama constant_pool.c para preencher o dicionário
+      ├── Lê Interfaces, Fields e Methods
+      └── Chama attributes.c para decodificar os atributos de cada um
 
-constant_pool.c
-  cria estruturas especificas para cada tag
-  valida referencias internas da constant pool
+          attributes.c
+           └── Desempacota o atributo (Ex: "Code" e seus sub-atributos)
 
-viewer.c
-  imprime informacoes gerais, constant pool, fields, methods e atributos
+ ├── Chama constant_pool.c (Validação de Referências)
+ └── Chama viewer.c passando o Terminal e o .txt
 
-main.c
-  encontra atributos Code em metodos
-  chama code_attribute.c para imprimir os bytes
-  chama instruction_reader.c para imprimir instrucoes
+     viewer.c
+      ├── Exibe General Info, Constant Pool, Fields, Methods
+      └── Chama instruction_viewer.c ao encontrar o atributo Code
 
-instruction_reader.c
-  percorre o bytecode pelo pc e imprime mnemônicos
+          instruction_viewer.c
+           └── Varre os bytes e imprime o Disassembly (Mnemônicos)
 
-utils.c
-  fornece conversao de endianness usada durante a leitura
+ └── Limpa toda a estrutura da memória e encerra.
 ```
 
 Essa separacao ajuda o projeto a seguir a organizacao da propria especificacao: primeiro os bytes sao lidos e convertidos, depois as referencias sao validadas, depois as estruturas sao exibidas.
