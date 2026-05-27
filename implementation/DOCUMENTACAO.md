@@ -111,7 +111,7 @@ Exemplos:
 - major `61`: Java 17;
 - major `69`: Java 25.
 
-Na especificacao Java SE 26, os major versions validos vao de 45 ate 70. A implementacao atual reconhece ate 69 na funcao de exibicao.
+Na especificacao Java SE 26, os major versions validos vao de 45 ate 70. A implementacao atual reconhece ate 70 na funcao de exibicao.
 
 ## Constant Pool
 
@@ -342,7 +342,7 @@ Diferente de implementações mais simples que apenas pulam partes complexas do 
 
 O array `code` do atributo `Code` contem instrucoes da JVM. Cada instrucao comeca por um opcode `u1`, seguido ou nao por operandos.
 
-A funcao `read_instructions`, em `src/instruction_viewer.c`, percorre esse array usando um contador `pc`:
+A funcao `view_instructions`, em `src/instruction_viewer.c`, percorre esse array usando um contador `pc`:
 
 ```c
 uint32_t pc = 0;
@@ -470,7 +470,7 @@ Este e o ponto de entrada do programa. Ele nao conhece todos os detalhes interno
 5. chama `check_constant_pool_references` para validar referencias internas da constant pool;
 6. chama as funcoes de exibicao em `viewer.c`;
 7. percorre os metodos para encontrar atributos chamados `"Code"`;
-8. imprime o conteudo do atributo `Code` e chama `read_instructions`;
+8. imprime o conteudo do atributo `Code` e chama `view_instructions`;
 9. libera a memoria da constant pool e da struct principal.
 
 Em termos da especificacao, `main.c` e o controlador que pega a estrutura `ClassFile` completa ja lida da memoria e decide quais partes serao exibidas para o usuario.
@@ -513,15 +513,21 @@ Tambem estao em `reader.c` algumas validacoes:
 - `validate_methods`: faz a mesma validacao para methods;
 - `validate_attributes`: confere se o nome de cada atributo global aponta para `CONSTANT_Utf8`.
 
-A funcao `read_attributes_array` le atributos genericos no formato:
+### Leitura Dinâmica de Atributos
+
+A função auxiliar `read_attributes_array` é responsável por processar os blocos de atributos tanto de Classes quanto de Fields e Methods.
 
 ```c
-attribute_name_index
-attribute_length
-info[attribute_length]
+attribute_info* read_attributes_array(ClassFile *cf, uint16_t count, FILE *file);
 ```
 
-Quando `reader.c` esta lendo atributos de metodos, ele trata um caso especial: se o nome do atributo for `"Code"`, o conteudo nao e guardado como bytes crus. Em vez disso, ele chama `read_code_attribute`, porque o atributo `Code` possui uma estrutura interna propria na especificacao.
+Diferente de implementações rígidas, esta função faz uma ponte dinâmica com a "fábrica de atributos":
+
+- Lê o attribute_name_index e localiza a estrutura correspondente na piscina de constantes.
+
+- Extrai o array de bytes brutos da JVM e monta uma string em C terminada em nulo (\0) contendo o nome real do atributo (ex: "Code", "SourceFile").
+
+- Repassa essa string e o fluxo do arquivo para a função global read_specific_attribute_info (em attributes.c), delegando a ela a responsabilidade de desempacotar e estruturar as informações específicas de cada tipo de atributo.
 
 ### `src/constant_pool.c`
 
@@ -586,33 +592,34 @@ Usa um Program Counter (pc) para varrer o array de bytes. Um grande switch/case 
 
 ### `src/viewer.c`
 
-Este arquivo e responsavel por transformar as estruturas ja lidas em saida textual compreensivel.
+Este arquivo é o motor de formatação e renderização visual do projeto. Ele não lê bytes diretamente do arquivo `.class`; seu papel é navegar pela struct `ClassFile` já alocada na memória e imprimir os valores de forma interpretada e humanamente compreensível.
 
-Ele nao le bytes diretamente do arquivo `.class`; seu papel e navegar pela struct `ClassFile` em memoria e imprimir valores ja interpretados.
+Um grande diferencial da arquitetura atual é que todas as funções de exibição recebem um ponteiro `FILE *out`. Isso permite que o programa seja polimórfico, gerando o relatório no terminal (`stdout`) e exportando para um arquivo de texto (`saida_exibidor.txt`) simultaneamente, sem duplicar a lógica de impressão.
 
-As principais funcoes sao:
+As principais funções são:
 
-- `print_general_information`: imprime `magic`, versoes, tamanho da constant pool, flags, classe atual, superclasse e contadores;
-- `print_constant_pool`: percorre a constant pool e imprime cada entrada;
-- `print_fields`: imprime fields, descritores, flags e atributos;
-- `print_methods`: imprime methods, descritores, flags e atributos;
-- `print_class_attributes`: imprime atributos globais da classe.
+- `print_general_information`: imprime o cabeçalho da classe, incluindo o *Magic Number*, tamanho da constant pool, contadores e as versões. Utiliza a função `get_java_version_string` para traduzir o *Major Version* em versões comerciais do Java (suportando até o Java SE 26).
 
-`viewer.c` tambem resolve varias referencias indiretas da constant pool. Por exemplo, para imprimir um `CONSTANT_Methodref`, ele busca:
+- `print_constant_pool`: percorre a piscina de constantes imprimindo cada entrada e seus respectivos dados.
+
+- `print_interfaces`: lista os índices e exibe os nomes resolvidos das interfaces implementadas.
+
+- `print_fields` e `print_methods`: imprimem as variáveis e funções, exibindo seus descritores, traduzindo as *Access Flags* e listando o sumário de atributos pertencentes a cada um.
+
+- `print_attributes`: agrega e varre sequencialmente todos os atributos encontrados no `.class` (sejam eles atributos globais da classe, dos fields ou dos methods), invocando a leitura detalhada para cada um.
+
+- `print_specific_attribute_info`: função central que formata os dados internos de atributos específicos (como `SourceFile`, `ConstantValue`, `InnerClasses`, `LineNumberTable`, etc). Quando identifica o atributo `Code`, ela exibe as informações de pilha, o *hex dump*, a tabela de exceções, formata os sub-atributos recursivamente e invoca a função `view_instructions` para realizar o disassembly do código.
+
+O `viewer.c` também é responsável por resolver as complexas referências indiretas da constant pool. Por exemplo, para imprimir um `CONSTANT_Methodref` de forma legível, ele busca:
 
 1. a classe em `class_index`;
 2. o nome real da classe via `CONSTANT_Class_info.name_index`;
-3. o `NameAndType`;
-4. o nome e descritor do metodo.
+3. o `NameAndType` apontado pelo `name_and_type_index`;
+4. o nome e o descritor do método.
 
-Isso e importante porque a constant pool e altamente indireta: muitas entradas so fazem sentido quando seus indices sao resolvidos.
+Isso é fundamental porque a constant pool é altamente indireta: muitas entradas só fazem sentido para o usuário quando seus índices são resolvidos e cruzados com as entradas `CONSTANT_Utf8`.
 
-O arquivo tambem contem funcoes de traducao de flags:
-
-- `print_field_access_flags`;
-- `print_method_access_flags`.
-
-Essas funcoes transformam mascaras de bits em palavras como `public`, `private`, `static`, `final`, `abstract` e outras.
+Por fim, o arquivo contém funções de tradução que utilizam máscaras de bits (`&`), como `get_class_access_flags_string`, `print_field_access_flags` e `print_method_access_flags`. Elas transformam números hexadecimais em permissões textuais claras, como `public`, `private`, `static`, `final` e `abstract`.
 
 ### `src/utils.c`
 
