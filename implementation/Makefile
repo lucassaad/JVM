@@ -1,6 +1,11 @@
 # Makefile - Leitor/Exibidor JVM
 # Disciplina: Software Basico
 
+ifeq (run,$(firstword $(MAKECMDGOALS)))
+  RUN_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+  $(eval $(RUN_ARGS):;@:)
+endif
+
 ifeq ($(OS),Windows_NT)
     RM = rmdir /s /q
     MKDIR = if not exist $1 mkdir $1
@@ -43,7 +48,7 @@ clean:
 	@if exist $(BIN_DIR) $(RM) $(BIN_DIR)
 
 run: all
-	.$(call FIX_PATH,/$(TARGET))
+	.$(call FIX_PATH,/$(TARGET)) $(RUN_ARGS)
 
 .PHONY: all clean run
 # make: Apenas compila o projeto. 

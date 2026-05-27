@@ -33,9 +33,9 @@ make run
 
 
 3. **Analisar um arquivo `.class` específico:**
-Para usar a ferramenta com seus próprios arquivos compilados do Java, chame o binário gerado passando o caminho do arquivo como argumento:
+Graças à configuração do Makefile, você pode passar o caminho do arquivo .class diretamente:
 ```bash
-./bin/leitor_exibidor caminhos/para/seu_arquivo.class
+make run caminhos/para/seu_arquivo.class
 
 ```
 
