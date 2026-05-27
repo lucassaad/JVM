@@ -678,6 +678,31 @@ main.c
 
 Essa separacao ajuda o projeto a seguir a organizacao da propria especificacao: primeiro os bytes sao lidos e convertidos, depois as referencias sao validadas, depois as estruturas sao exibidas.
 
+## Geração do Relatório de Saída (.txt)
+
+O programa não se limita a exibir os dados decodificados no terminal; ele possui um sistema de exportação que gera automaticamente um relatório completo e estruturado no arquivo **`saida_exibidor.txt`** na raiz do projeto. 
+
+### Mecanismo de Entrada/Saída Flexível (Polimorfismo em C)
+Para evitar a duplicação de código e manter a manutenibilidade do projeto, todas as funções de exibição presentes em `src/viewer.c` e `src/instruction_viewer.c` foram projetadas para receber um ponteiro genérico de arquivo (`FILE *out`) como argumento. 
+
+Graças a esta decisão arquitetural, o fluxo de dados é polimórfico: a mesma função que formata e imprime uma informação na tela pode escrever exatamente o mesmo conteúdo num arquivo físico, mudando apenas o descritor de ficheiro passado por parâmetro.
+
+### Fluxo de Geração no `src/main.c`
+A coordenação da escrita simultânea é realizada diretamente pelo ciclo principal no `src/main.c`:
+
+1. **Abertura do Canal**: Logo após concluir a leitura binária e fechar o arquivo `.class` de entrada, o programa abre (ou cria) o arquivo `saida_exibidor.txt` em modo de escrita de texto (`"w"`).
+2. **Escrita Duplicada em Cascata**: O programa então chama cada módulo do visualizador duas vezes consecutivas: a primeira passando `stdout` (para renderizar no terminal) e a segunda passando o ponteiro `arquivo_txt` (para gravar no ficheiro).
+   
+   *Exemplo do fluxo implementado:*
+   ```c
+   // Exibe e grava as Informações Gerais
+   print_general_information(stdout, cf);
+   print_general_information(arquivo_txt, cf);
+
+   // Exibe e grava a Pool de Constantes
+   print_constant_pool(stdout, cf);
+   print_constant_pool(arquivo_txt, cf);
+
 ## Referencias
 
 - `pdfs/classfile-85-117.pdf`
