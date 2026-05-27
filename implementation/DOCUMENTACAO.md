@@ -436,6 +436,15 @@ make run caminhos/para/seu_arquivo.class
 
 ```
 
+## Flags de Compilação
+
+O projeto utiliza o compilador GCC com um conjunto rigoroso de flags de compilação (`CFLAGS`) configuradas no `Makefile` para garantir a estabilidade, segurança e rastreabilidade do código[cite: 1]:
+
+* **`-std=c99`**: Força o compilador a utilizar a norma C99 da linguagem[cite: 1]. Isso assegura o suporte a recursos práticos (como a declaração de variáveis locais diretamente na inicialização de laços `for`) e garante que o código seja portátil para diferentes sistemas operacionais.
+* **`-Wall`**: Habilita todos os avisos (*warnings*) padrões do compilador[cite: 1]. Ajuda a identificar preventivamente problemas como variáveis declaradas mas não utilizadas, ausência de retornos em funções ou conversões de tipos perigosas.
+* **`-Wextra`**: Complementa o `-Wall` habilitando verificações extras e ainda mais estritas[cite: 1], promovendo um alto padrão de escrita de código e prevenindo *bugs* sutis.
+* **`-g`**: Instrui o compilador a incluir símbolos de depuração (*debug*) no arquivo executável final[cite: 1]. Esta flag é fundamental para permitir o uso de ferramentas avançadas como o **GDB** (para depuração passo a passo) ou o **Valgrind** (para validar a ausência total de *memory leaks* durante e após a execução do `deep_free`).
+
 ## Mapa dos Arquivos
 
 | Arquivo | Responsabilidade |
