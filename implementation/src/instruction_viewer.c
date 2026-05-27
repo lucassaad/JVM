@@ -273,6 +273,256 @@ void view_instructions(FILE *out, ClassFile* cf, Code_attribute* code) {
                 break;
             }
 
+                        // ARRAY LOAD
+            case 0x2E: fprintf(out, "iaload\n"); pc += 1; break;
+            case 0x2F: fprintf(out, "laload\n"); pc += 1; break;
+            case 0x30: fprintf(out, "faload\n"); pc += 1; break;
+            case 0x31: fprintf(out, "daload\n"); pc += 1; break;
+            case 0x32: fprintf(out, "aaload\n"); pc += 1; break;
+            case 0x33: fprintf(out, "baload\n"); pc += 1; break;
+            case 0x34: fprintf(out, "caload\n"); pc += 1; break;
+            case 0x35: fprintf(out, "saload\n"); pc += 1; break;
+
+            // ARRAY STORE
+            case 0x4F: fprintf(out, "iastore\n"); pc += 1; break;
+            case 0x50: fprintf(out, "lastore\n"); pc += 1; break;
+            case 0x51: fprintf(out, "fastore\n"); pc += 1; break;
+            case 0x52: fprintf(out, "dastore\n"); pc += 1; break;
+            case 0x53: fprintf(out, "aastore\n"); pc += 1; break;
+            case 0x54: fprintf(out, "bastore\n"); pc += 1; break;
+            case 0x55: fprintf(out, "castore\n"); pc += 1; break;
+            case 0x56: fprintf(out, "sastore\n"); pc += 1; break;
+
+            // PUSH
+            case 0x11: {
+                int16_t value = (int16_t)((code->code[pc + 1] << 8) | code->code[pc + 2]);
+                fprintf(out, "sipush %d\n", value);
+                pc += 3;
+                break;
+            }
+
+            // FLOAT CONSTANTS
+            case 0x0B: fprintf(out, "fconst_0\n"); pc += 1; break;
+            case 0x0C: fprintf(out, "fconst_1\n"); pc += 1; break;
+            case 0x0D: fprintf(out, "fconst_2\n"); pc += 1; break;
+
+            // LONG CONSTANTS
+            case 0x09: fprintf(out, "lconst_0\n"); pc += 1; break;
+            case 0x0A: fprintf(out, "lconst_1\n"); pc += 1; break;
+
+            // DOUBLE CONSTANTS
+            case 0x0E: fprintf(out, "dconst_0\n"); pc += 1; break;
+            case 0x0F: fprintf(out, "dconst_1\n"); pc += 1; break;
+
+            // CONTROLE DE FLUXO
+            case 0x84: {
+                uint8_t index = code->code[pc + 1];
+                int8_t  cont  = (int8_t) code->code[pc + 2];
+                fprintf(out, "iinc %u %d\n", index, cont);
+                pc += 3;
+                break;
+            }
+
+            case 0x99: {
+                int16_t offset = (int16_t)((code->code[pc + 1] << 8) | code->code[pc + 2]);
+                fprintf(out, "ifeq %d\n", offset);
+                pc += 3;
+                break;
+            }
+            case 0x9A: {
+                int16_t offset = (int16_t)((code->code[pc + 1] << 8) | code->code[pc + 2]);
+                fprintf(out, "ifne %d\n", offset);
+                pc += 3;
+                break;
+            }
+            case 0x9B: {
+                int16_t offset = (int16_t)((code->code[pc + 1] << 8) | code->code[pc + 2]);
+                fprintf(out, "iflt %d\n", offset);
+                pc += 3;
+                break;
+            }
+            case 0x9C: {
+                int16_t offset = (int16_t)((code->code[pc + 1] << 8) | code->code[pc + 2]);
+                fprintf(out, "ifge %d\n", offset);
+                pc += 3;
+                break;
+            }
+            case 0x9D: {
+                int16_t offset = (int16_t)((code->code[pc + 1] << 8) | code->code[pc + 2]);
+                fprintf(out, "ifgt %d\n", offset);
+                pc += 3;
+                break;
+            }
+            case 0x9E: {
+                int16_t offset = (int16_t)((code->code[pc + 1] << 8) | code->code[pc + 2]);
+                fprintf(out, "ifle %d\n", offset);
+                pc += 3;
+                break;
+            }
+            case 0x9F: {
+                int16_t offset = (int16_t)((code->code[pc + 1] << 8) | code->code[pc + 2]);
+                fprintf(out, "if_icmpeq %d\n", offset);
+                pc += 3;
+                break;
+            }
+            case 0xA0: {
+                int16_t offset = (int16_t)((code->code[pc + 1] << 8) | code->code[pc + 2]);
+                fprintf(out, "if_icmpne %d\n", offset);
+                pc += 3;
+                break;
+            }
+            case 0xA1: {
+                int16_t offset = (int16_t)((code->code[pc + 1] << 8) | code->code[pc + 2]);
+                fprintf(out, "if_icmplt %d\n", offset);
+                pc += 3;
+                break;
+            }
+            case 0xA2: {
+                int16_t offset = (int16_t)((code->code[pc + 1] << 8) | code->code[pc + 2]);
+                fprintf(out, "if_icmpge %d\n", offset);
+                pc += 3;
+                break;
+            }
+            case 0xA3: {
+                int16_t offset = (int16_t)((code->code[pc + 1] << 8) | code->code[pc + 2]);
+                fprintf(out, "if_icmpgt %d\n", offset);
+                pc += 3;
+                break;
+            }
+            case 0xA4: {
+                int16_t offset = (int16_t)((code->code[pc + 1] << 8) | code->code[pc + 2]);
+                fprintf(out, "if_icmple %d\n", offset);
+                pc += 3;
+                break;
+            }
+            case 0xA5: {
+                int16_t offset = (int16_t)((code->code[pc + 1] << 8) | code->code[pc + 2]);
+                fprintf(out, "if_acmpeq %d\n", offset);
+                pc += 3;
+                break;
+            }
+            case 0xA6: {
+                int16_t offset = (int16_t)((code->code[pc + 1] << 8) | code->code[pc + 2]);
+                fprintf(out, "if_acmpne %d\n", offset);
+                pc += 3;
+                break;
+            }
+            case 0xA7: {
+                int16_t offset = (int16_t)((code->code[pc + 1] << 8) | code->code[pc + 2]);
+                fprintf(out, "goto %d\n", offset);
+                pc += 3;
+                break;
+            }
+            case 0xC6: {
+                int16_t offset = (int16_t)((code->code[pc + 1] << 8) | code->code[pc + 2]);
+                fprintf(out, "ifnull %d\n", offset);
+                pc += 3;
+                break;
+            }
+            case 0xC7: {
+                int16_t offset = (int16_t)((code->code[pc + 1] << 8) | code->code[pc + 2]);
+                fprintf(out, "ifnonnull %d\n", offset);
+                pc += 3;
+                break;
+            }
+
+            // LONG COMPARE
+            case 0x94: fprintf(out, "lcmp\n"); pc += 1; break;
+            case 0x95: fprintf(out, "fcmpl\n"); pc += 1; break;
+            case 0x96: fprintf(out, "fcmpg\n"); pc += 1; break;
+            case 0x97: fprintf(out, "dcmpl\n"); pc += 1; break;
+            case 0x98: fprintf(out, "dcmpg\n"); pc += 1; break;
+
+            // MISC
+            case 0xC2: fprintf(out, "monitorenter\n"); pc += 1; break;
+            case 0xC3: fprintf(out, "monitorexit\n"); pc += 1; break;
+            case 0xBF: fprintf(out, "athrow\n"); pc += 1; break;
+            case 0xA8: {
+                int16_t offset = (int16_t)((code->code[pc + 1] << 8) | code->code[pc + 2]);
+                fprintf(out, "jsr %d\n", offset);
+                pc += 3;
+                break;
+            }
+            case 0xA9: {
+                fprintf(out, "ret %u\n", code->code[pc + 1]);
+                pc += 2;
+                break;
+            }
+
+            // DOUBLE/FLOAT STORE (Fixo)
+            case 0x43: fprintf(out, "fstore_0\n"); pc += 1; break;
+            case 0x44: fprintf(out, "fstore_1\n"); pc += 1; break;
+            case 0x45: fprintf(out, "fstore_2\n"); pc += 1; break;
+            case 0x46: fprintf(out, "fstore_3\n"); pc += 1; break;
+            case 0x47: fprintf(out, "dstore_0\n"); pc += 1; break;
+            case 0x48: fprintf(out, "dstore_1\n"); pc += 1; break;
+            case 0x49: fprintf(out, "dstore_2\n"); pc += 1; break;
+            case 0x4A: fprintf(out, "dstore_3\n"); pc += 1; break;
+
+            // DOUBLE/FLOAT LOAD (Fixo)
+            case 0x22: fprintf(out, "fload_0\n"); pc += 1; break;
+            case 0x23: fprintf(out, "fload_1\n"); pc += 1; break;
+            case 0x24: fprintf(out, "fload_2\n"); pc += 1; break;
+            case 0x25: fprintf(out, "fload_3\n"); pc += 1; break;
+            case 0x26: fprintf(out, "dload_0\n"); pc += 1; break;
+            case 0x27: fprintf(out, "dload_1\n"); pc += 1; break;
+            case 0x28: fprintf(out, "dload_2\n"); pc += 1; break;
+            case 0x29: fprintf(out, "dload_3\n"); pc += 1; break;
+            case 0x1E: fprintf(out, "lload_0\n"); pc += 1; break;
+            case 0x1F: fprintf(out, "lload_1\n"); pc += 1; break;
+            case 0x20: fprintf(out, "lload_2\n"); pc += 1; break;
+            case 0x21: fprintf(out, "lload_3\n"); pc += 1; break;
+
+            // RETORNOS
+            case 0xAF: fprintf(out, "dreturn\n"); pc += 1; break;
+            case 0xAD: fprintf(out, "lreturn\n"); pc += 1; break;
+            case 0xAE: fprintf(out, "freturn\n"); pc += 1; break;
+
+            // MULTIANEWARRAY
+            case 0xC5: {
+                uint16_t index = (code->code[pc + 1] << 8) | code->code[pc + 2];
+                uint8_t dimensions = code->code[pc + 3];
+                fprintf(out, "multianewarray #%u %u\n", index, dimensions);
+                pc += 4;
+                break;
+            }
+
+            // TABLESWITCH
+            case 0xAA: {
+                uint32_t base_pc = pc;
+                pc++;
+                // alinha para múltiplo de 4
+                while (pc % 4 != 0) pc++;
+                int32_t def = (int32_t)((code->code[pc] << 24) | (code->code[pc+1] << 16) | (code->code[pc+2] << 8) | code->code[pc+3]); pc += 4;
+                int32_t low = (int32_t)((code->code[pc] << 24) | (code->code[pc+1] << 16) | (code->code[pc+2] << 8) | code->code[pc+3]); pc += 4;
+                int32_t high = (int32_t)((code->code[pc] << 24) | (code->code[pc+1] << 16) | (code->code[pc+2] << 8) | code->code[pc+3]); pc += 4;
+                fprintf(out, "tableswitch [%d-%d] default:%d\n", low, high, def);
+                int32_t count = high - low + 1;
+                for (int32_t k = 0; k < count; k++) {
+                    int32_t offset = (int32_t)((code->code[pc] << 24) | (code->code[pc+1] << 16) | (code->code[pc+2] << 8) | code->code[pc+3]); pc += 4;
+                    fprintf(out, "          case %d: %d\n", low + k, offset);
+                }
+                (void)base_pc;
+                break;
+            }
+
+            // LOOKUPSWITCH
+            case 0xAB: {
+                uint32_t base_pc = pc;
+                pc++;
+                while (pc % 4 != 0) pc++;
+                int32_t def = (int32_t)((code->code[pc] << 24) | (code->code[pc+1] << 16) | (code->code[pc+2] << 8) | code->code[pc+3]); pc += 4;
+                int32_t npairs = (int32_t)((code->code[pc] << 24) | (code->code[pc+1] << 16) | (code->code[pc+2] << 8) | code->code[pc+3]); pc += 4;
+                fprintf(out, "lookupswitch npairs:%d default:%d\n", npairs, def);
+                for (int32_t k = 0; k < npairs; k++) {
+                    int32_t match = (int32_t)((code->code[pc] << 24) | (code->code[pc+1] << 16) | (code->code[pc+2] << 8) | code->code[pc+3]); pc += 4;
+                    int32_t offset = (int32_t)((code->code[pc] << 24) | (code->code[pc+1] << 16) | (code->code[pc+2] << 8) | code->code[pc+3]); pc += 4;
+                    fprintf(out, "          case %d: %d\n", match, offset);
+                }
+                (void)base_pc;
+                break;
+            }
+
             default:
                 fprintf(out, "unknown opcode 0x%02X\n", opcode);
                 pc++;
