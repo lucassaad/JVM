@@ -6,3 +6,4 @@ bin/
 *.o
 *.out
 *.txt
+*zip
