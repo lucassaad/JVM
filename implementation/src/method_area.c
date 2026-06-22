@@ -4,6 +4,20 @@
 #include "method_area.h"
 #include "constant_pool.h"  
 
+ClassFile* method_area_resolve_class(cp_info **constant_pool, uint16_t index) {
+    // TODO: Implementar a busca real da classe na Área de Métodos global.
+    // O index aponta para CONSTANT_Class_info no constant_pool.
+    
+    // Por enquanto, para compilar a Issue #82 com sucesso:
+    printf("Aviso: method_area_resolve_class invocada, mas a busca global ainda nao foi implementada.\n");
+    
+    // Para evitar que o compilador reclame dos parâmetros não usados:
+    (void)constant_pool;
+    (void)index;
+    
+    return NULL; 
+}
+
 // Função que calcula o índice real no vetor obj->fields usando as strings (Utf8)
 uint16_t resolve_field_offset(ClassFile *class_ref, cp_info **frame_cp, uint16_t indexbyte) {
     

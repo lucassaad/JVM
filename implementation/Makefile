@@ -1,10 +1,7 @@
-# Makefile - Leitor/Exibidor JVM
 # Disciplina: Software Basico
 
-ifeq (run,$(firstword $(MAKECMDGOALS)))
-  RUN_ARGS := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
-  $(eval $(RUN_ARGS):;@:)
-endif
+# O arquivo alvo padrao caso o usuario rode o comando sem passar o parametro FILE
+FILE ?= Main.class
 
 ifeq ($(OS),Windows_NT)
     RM = rmdir /s /q
@@ -47,12 +44,20 @@ clean:
 	@if exist $(OBJ_DIR) $(RM) $(OBJ_DIR)
 	@if exist $(BIN_DIR) $(RM) $(BIN_DIR)
 
-run: all
-	.$(call FIX_PATH,/$(TARGET)) $(RUN_ARGS)
+# Inicia o visualizador estatico do .class
+run-leitor: all
+	.$(call FIX_PATH,/$(TARGET)) -l $(FILE)
 
-.PHONY: all clean run
-# make: Apenas compila o projeto. 
+# Inicia a maquina virtual para executar o bytecode
+run-interpreter: all
+	.$(call FIX_PATH,/$(TARGET)) -i $(FILE)
 
-# make run: Compila todo o projeto e já inicia a execução do programa imediatamente.
+# Target padrao focado no objetivo final do projeto (Interpretador)
+run: run-interpreter
 
-# make clean: Apaga completamente as pastas de lixo de compilação (obj/ e bin/). 
+.PHONY: all clean run run-leitor run-interpreter
+# make            : Apenas compila o projeto gerando o binário na pasta bin/.
+# make run        : Compila o projeto e inicia a execução no modo Interpretador (padrão do projeto).
+# make run-leitor : Compila o projeto e executa a ferramenta de análise estática (Leitor/Exibidor).
+# make run-interpreter : Compila o projeto e executa a máquina virtual (Interpretador/Motor de Execução).
+# make clean      : Apaga completamente as pastas de lixo de compilação (obj/ e bin/).

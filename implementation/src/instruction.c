@@ -1,6 +1,8 @@
 #include "instruction.h"
 #include "constant_pool.h"
 #include "method_area.h"
+#include <stdlib.h>
+#include <string.h>
 
 // FUNÇÃO AUXILIAR
 char get_field_descriptor_first_char(cp_info **constant_pool, uint16_t indexbyte) {
@@ -36,6 +38,7 @@ void newarray(Frame *frame) {
 void anewarray(Frame *frame) {
     uint16_t indexbyte = (frame->code[frame->pc] << 8) | frame->code[frame->pc + 1];
     frame->pc += 2;
+    (void)indexbyte;
     int32_t count = frame_pop_int(frame);
     
     Array *arr = create_new_array(count, T_REFERENCE);
