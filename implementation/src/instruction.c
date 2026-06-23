@@ -3,6 +3,178 @@
 #include "method_area.h"
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
+
+// INSTRUÇÕES MATEMÁTICAS - INTEIROS (32 BITS)
+// Opcode: 0x60
+void iadd(Frame *frame) {
+    int32_t val2 = frame_pop_int(frame);
+    int32_t val1 = frame_pop_int(frame);
+    frame_push_int(frame, val1 + val2);
+}
+
+// Opcode: 0x64
+void isub(Frame *frame) {
+    int32_t val2 = frame_pop_int(frame);
+    int32_t val1 = frame_pop_int(frame);
+    frame_push_int(frame, val1 - val2);
+}
+
+// Opcode: 0x68
+void imul(Frame *frame) {
+    int32_t val2 = frame_pop_int(frame);
+    int32_t val1 = frame_pop_int(frame);
+    frame_push_int(frame, val1 * val2);
+}
+
+// Opcode: 0x6C
+void idiv(Frame *frame) {
+    int32_t val2 = frame_pop_int(frame);
+    int32_t val1 = frame_pop_int(frame);
+    if (val2 == 0) {
+        fprintf(stderr, "ArithmeticException: / by zero\n");
+        exit(1);
+    }
+    frame_push_int(frame, val1 / val2);
+}
+
+// Opcode: 0x70
+void irem(Frame *frame) {
+    int32_t val2 = frame_pop_int(frame);
+    int32_t val1 = frame_pop_int(frame);
+    if (val2 == 0) {
+        fprintf(stderr, "ArithmeticException: / by zero\n");
+        exit(1);
+    }
+    frame_push_int(frame, val1 % val2);
+}
+
+// INSTRUÇÕES MATEMÁTICAS - LONGS (64 BITS)
+// Opcode: 0x61
+void ladd(Frame *frame) {
+    int64_t val2 = frame_pop_long(frame);
+    int64_t val1 = frame_pop_long(frame);
+    frame_push_long(frame, val1 + val2);
+}
+
+// Opcode: 0x65
+void lsub(Frame *frame) {
+    int64_t val2 = frame_pop_long(frame);
+    int64_t val1 = frame_pop_long(frame);
+    frame_push_long(frame, val1 - val2);
+}
+
+// Opcode: 0x69
+void lmul(Frame *frame) {
+    int64_t val2 = frame_pop_long(frame);
+    int64_t val1 = frame_pop_long(frame);
+    frame_push_long(frame, val1 * val2);
+}
+
+// Opcode: 0x6D
+void execute_ldiv(Frame *frame) {
+    int64_t val2 = frame_pop_long(frame);
+    int64_t val1 = frame_pop_long(frame);
+    if (val2 == 0) {
+        fprintf(stderr, "ArithmeticException: / by zero\n");
+        exit(1);
+    }
+    frame_push_long(frame, val1 / val2);
+}
+
+// Opcode: 0x71
+void lrem(Frame *frame) {
+    int64_t val2 = frame_pop_long(frame);
+    int64_t val1 = frame_pop_long(frame);
+    if (val2 == 0) {
+        fprintf(stderr, "ArithmeticException: / by zero\n");
+        exit(1);
+    }
+    frame_push_long(frame, val1 % val2);
+}
+
+// INSTRUÇÕES MATEMÁTICAS - DOUBLES (64 BITS)
+// Opcode: 0x63
+void dadd(Frame *frame) {
+    double val2 = frame_pop_double(frame);
+    double val1 = frame_pop_double(frame);
+    frame_push_double(frame, val1 + val2);
+}
+
+// Opcode: 0x67
+void dsub(Frame *frame) {
+    double val2 = frame_pop_double(frame);
+    double val1 = frame_pop_double(frame);
+    frame_push_double(frame, val1 - val2);
+}
+
+// Opcode: 0x6B
+void dmul(Frame *frame) {
+    double val2 = frame_pop_double(frame);
+    double val1 = frame_pop_double(frame);
+    frame_push_double(frame, val1 * val2);
+}
+
+// Opcode: 0x6F
+void ddiv(Frame *frame) {
+    double val2 = frame_pop_double(frame);
+    double val1 = frame_pop_double(frame);
+
+    frame_push_double(frame, val1 / val2);
+}
+
+// Opcode: 0x73
+void drem(Frame *frame) {
+    double val2 = frame_pop_double(frame);
+    double val1 = frame_pop_double(frame);
+    frame_push_double(frame, fmod(val1, val2));
+}
+
+// INSTRUÇÕES LÓGICAS E BIT-A-BIT (INTEIROS)
+// Opcode: 0x7E
+void iand(Frame *frame) {
+    int32_t val2 = frame_pop_int(frame);
+    int32_t val1 = frame_pop_int(frame);
+    frame_push_int(frame, val1 & val2);
+}
+
+// Opcode: 0x80
+void ior(Frame *frame) {
+    int32_t val2 = frame_pop_int(frame);
+    int32_t val1 = frame_pop_int(frame);
+    frame_push_int(frame, val1 | val2);
+}
+
+// Opcode: 0x82
+void ixor(Frame *frame) {
+    int32_t val2 = frame_pop_int(frame);
+    int32_t val1 = frame_pop_int(frame);
+    frame_push_int(frame, val1 ^ val2);
+}
+
+// Opcode: 0x78 (Shift Left)
+void ishl(Frame *frame) {
+    int32_t val2 = frame_pop_int(frame);
+    int32_t val1 = frame_pop_int(frame);
+
+    frame_push_int(frame, val1 << (val2 & 0x1F));
+}
+
+// Opcode: 0x7A (Arithmetic Shift Right - Mantém o sinal)
+void ishr(Frame *frame) {
+    int32_t val2 = frame_pop_int(frame);
+    int32_t val1 = frame_pop_int(frame);
+    frame_push_int(frame, val1 >> (val2 & 0x1F));
+}
+
+// Opcode: 0x7C (Logical Shift Right - Preenche com zeros)
+void iushr(Frame *frame) {
+    int32_t val2 = frame_pop_int(frame);
+    int32_t val1 = frame_pop_int(frame);
+
+    uint32_t u_val1 = (uint32_t)val1;
+    frame_push_int(frame, (int32_t)(u_val1 >> (val2 & 0x1F)));
+}
 
 // FUNÇÃO AUXILIAR
 char get_field_descriptor_first_char(cp_info **constant_pool, uint16_t indexbyte) {

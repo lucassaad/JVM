@@ -5,6 +5,37 @@
 #include "frame.h"
 #include "java_types.h"
 
+
+// Opcodes Matemáticos 
+// Aritmética de Inteiros (32 bits)
+void iadd(Frame *frame);
+void isub(Frame *frame);
+void imul(Frame *frame);
+void idiv(Frame *frame);
+void irem(Frame *frame);
+
+// Aritmética de Longs (64 bits)
+void ladd(Frame *frame);
+void lsub(Frame *frame);
+void lmul(Frame *frame);
+void execute_ldiv(Frame *frame);
+void lrem(Frame *frame);
+
+// Aritmética de Doubles (64 bits)
+void dadd(Frame *frame);
+void dsub(Frame *frame);
+void dmul(Frame *frame);
+void ddiv(Frame *frame);
+void drem(Frame *frame);
+
+// Operações Lógicas / Bit a Bit para Inteiros
+void iand(Frame *frame);
+void ior(Frame *frame);
+void ixor(Frame *frame);
+void ishl(Frame *frame);
+void ishr(Frame *frame);
+void iushr(Frame *frame);
+
 // Instruções relativas aos Arrays
 void newarray(Frame *frame);
 void anewarray(Frame *frame);

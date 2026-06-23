@@ -34,7 +34,7 @@ all: $(TARGET)
 
 $(TARGET): $(OBJS)
 	@$(call MKDIR,$(BIN_DIR))
-	$(CC) $(CFLAGS) $(INCLUDES) $^ -o $@
+	$(CC) $(CFLAGS) $(INCLUDES) $^ -o $@ -lm
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@$(call MKDIR,$(OBJ_DIR))
