@@ -546,3 +546,222 @@ void getfield(Frame *frame) {
         frame_push_int(frame, value);
     }
 }
+
+// INSTRUÇÕES ENVOLVENDO CONSTANTES 
+// Opcode: 0x01
+void aconst_null(Frame *frame) {
+    frame_push_ref(frame, 0); 
+}
+
+// Opcode: 0x02
+void iconst_m1(Frame *frame) { 
+    frame_push_int(frame, -1); 
+} 
+
+// Opcode: 0x03
+void iconst_0(Frame *frame)  { 
+    frame_push_int(frame, 0); 
+}  
+
+// Opcode: 0x04
+void iconst_1(Frame *frame)  { 
+    frame_push_int(frame, 1); 
+}  
+
+// Opcode: 0x05
+void iconst_2(Frame *frame)  { 
+    frame_push_int(frame, 2); 
+}  
+
+// Opcode: 0x06
+void iconst_3(Frame *frame)  { 
+    frame_push_int(frame, 3); 
+}  
+
+// Opcode: 0x07
+void iconst_4(Frame *frame)  { 
+    frame_push_int(frame, 4); 
+}  
+
+// Opcode: 0x08
+void iconst_5(Frame *frame)  { 
+    frame_push_int(frame, 5); 
+}  
+
+// Opcode: 0x10
+void bipush(Frame *frame) {
+    int8_t byte = (int8_t)frame->code[frame->pc++];
+    frame_push_int(frame, (int32_t)byte);
+}
+
+// Opcode: 0x11
+void sipush(Frame *frame) {
+    int16_t short_val = (frame->code[frame->pc] << 8) | frame->code[frame->pc + 1];
+    frame->pc += 2; 
+    frame_push_int(frame, (int32_t)short_val);
+}
+
+// INSTRUÇÕES DE CARREGAMENTO
+// Opcode: 0x15
+void iload(Frame *frame) {
+    uint8_t index = frame->code[frame->pc++];
+    frame_push_int(frame, frame_get_local_int(frame, index));
+}
+
+// Opcode: 0x16
+void lload(Frame *frame) {
+    uint8_t index = frame->code[frame->pc++];
+    frame_push_long(frame, frame_get_local_long(frame, index));
+}
+
+// Opcode: 0x17
+void fload(Frame *frame) {
+    uint8_t index = frame->code[frame->pc++];
+    frame_push_float(frame, frame_get_local_float(frame, index));
+}
+
+// Opcode: 0x18
+void dload(Frame *frame) {
+    uint8_t index = frame->code[frame->pc++];
+    frame_push_double(frame, frame_get_local_double(frame, index));
+}
+
+// Opcode: 0x19
+void aload(Frame *frame) {
+    uint8_t index = frame->code[frame->pc++];
+    frame_push_ref(frame, frame_get_local_ref(frame, index));
+}
+
+// Variantes Implícitas 
+// Opcode: 0x1A
+void iload_0(Frame *frame) {
+    frame_push_int(frame, frame_get_local_int(frame, 0)); 
+} 
+
+// Opcode: 0x1B
+void iload_1(Frame *frame) {
+    frame_push_int(frame, frame_get_local_int(frame, 1)); 
+} 
+
+// Opcode: 0x1C
+void iload_2(Frame *frame) { 
+    frame_push_int(frame, frame_get_local_int(frame, 2)); 
+}
+
+// Opcode: 0x1D
+void iload_3(Frame *frame) { 
+    frame_push_int(frame, frame_get_local_int(frame, 3)); 
+}
+
+// Opcode: 0x2A
+void aload_0(Frame *frame) { 
+    frame_push_ref(frame, frame_get_local_ref(frame, 0)); 
+} 
+
+// Opcode: 0x2B
+void aload_1(Frame *frame) { 
+    frame_push_ref(frame, frame_get_local_ref(frame, 1)); 
+} 
+
+// Opcode: 0x2C
+void aload_2(Frame *frame) { 
+    frame_push_ref(frame, frame_get_local_ref(frame, 2)); 
+} 
+
+// Opcode: 0x2D
+void aload_3(Frame *frame) { 
+    frame_push_ref(frame, frame_get_local_ref(frame, 3)); 
+} 
+
+// INSTRUÇÕES DE ARMAZENAMENTO
+// Opcode: 0x36
+void istore(Frame *frame) {
+    uint8_t index = frame->code[frame->pc++];
+    frame_set_local_int(frame, index, frame_pop_int(frame));
+}
+
+// Opcode: 0x37
+void lstore(Frame *frame) {
+    uint8_t index = frame->code[frame->pc++];
+    frame_set_local_long(frame, index, frame_pop_long(frame));
+}
+
+// Opcode: 0x38
+void fstore(Frame *frame) {
+    uint8_t index = frame->code[frame->pc++];
+    frame_set_local_float(frame, index, frame_pop_float(frame));
+}
+
+// Opcode: 0x39
+void dstore(Frame *frame) {
+    uint8_t index = frame->code[frame->pc++];
+    frame_set_local_double(frame, index, frame_pop_double(frame));
+}
+
+// Opcode: 0x3A
+void astore(Frame *frame) {
+    uint8_t index = frame->code[frame->pc++];
+    frame_set_local_ref(frame, index, frame_pop_ref(frame));
+}
+
+// Variantes Implícitas
+// Opcode: 0x3B 
+void istore_0(Frame *frame) { 
+    frame_set_local_int(frame, 0, frame_pop_int(frame)); 
+} 
+
+// Opcode: 0x3C
+void istore_1(Frame *frame) { 
+    frame_set_local_int(frame, 1, frame_pop_int(frame)); 
+} 
+
+// Opcode: 0x3D
+void istore_2(Frame *frame) { 
+    frame_set_local_int(frame, 2, frame_pop_int(frame)); 
+} 
+
+// Opcode: 0x3E
+void istore_3(Frame *frame) { 
+    frame_set_local_int(frame, 3, frame_pop_int(frame)); 
+} 
+
+// Opcode: 0x4B
+void astore_0(Frame *frame) { 
+    frame_set_local_ref(frame, 0, frame_pop_ref(frame)); 
+} 
+
+// Opcode: 0x4C
+void astore_1(Frame *frame) { 
+    frame_set_local_ref(frame, 1, frame_pop_ref(frame)); 
+} 
+
+// Opcode: 0x4D
+void astore_2(Frame *frame) { 
+    frame_set_local_ref(frame, 2, frame_pop_ref(frame)); 
+} 
+
+// Opcode: 0x4E
+void astore_3(Frame *frame) { 
+    frame_set_local_ref(frame, 3, frame_pop_ref(frame)); 
+} 
+
+// INSTRUÇÕES DE MANIPULAÇÃO DIRETA DA PILHA
+// Opcode: 0x57 (pop)
+void pop_inst(Frame *frame) {
+    frame_pop_raw(frame);
+}
+
+// Opcode: 0x59
+void dup(Frame *frame) {
+    uint32_t top_value = frame_pop_raw(frame);
+    frame_push_raw(frame, top_value); 
+    frame_push_raw(frame, top_value);
+}
+
+// Opcode: 0x5F
+void swap(Frame *frame) {
+    uint32_t value1 = frame_pop_raw(frame);
+    uint32_t value2 = frame_pop_raw(frame);
+    frame_push_raw(frame, value1);
+    frame_push_raw(frame, value2);
+}
