@@ -62,3 +62,60 @@ uint16_t resolve_field_offset(ClassFile *class_ref, cp_info **frame_cp, uint16_t
     fprintf(stderr, "NoSuchFieldError: Field nao encontrado na resolucao de offset.\n");
     exit(1);
 }
+
+method_info *method_area_find_method(ClassFile *cf, const char *name, const char *descriptor, uint16_t required_flags) {
+    for (uint16_t i = 0; i < cf->methods_count; i++) {
+
+        method_info *method = &cf->methods[i];
+
+        CONSTANT_Utf8_info *method_name =
+            (CONSTANT_Utf8_info *)
+            cf->constant_pool[method->name_index]->info;
+
+        CONSTANT_Utf8_info *method_desc =
+            (CONSTANT_Utf8_info *)
+            cf->constant_pool[method->descriptor_index]->info;
+
+        if ((method->access_flags & required_flags) != required_flags)
+            continue;
+
+        if (method_name->length != strlen(name))
+            continue;
+
+        if (method_desc->length != strlen(descriptor))
+            continue;
+
+        if (strncmp((char *)method_name->bytes,
+                    name,
+                    method_name->length) != 0)
+            continue;
+
+        if (strncmp((char *)method_desc->bytes,
+                    descriptor,
+                    method_desc->length) != 0)
+            continue;
+
+        return method;
+    }
+
+    return NULL;
+}
+
+Code_attribute *method_area_get_code(ClassFile *cf, method_info *method) {
+
+    for (uint16_t i = 0; i < method->attributes_count; i++) {
+
+        attribute_info *attr = &method->attributes[i];
+
+        CONSTANT_Utf8_info *utf8 =
+            (CONSTANT_Utf8_info *) cf->constant_pool[attr->attribute_name_index]->info;
+
+        if (utf8->length == 4 &&
+            strncmp((char *)utf8->bytes, "Code", 4) == 0) {
+
+            return (Code_attribute *) attr->info;
+        }
+    }
+
+    return NULL;
+}
