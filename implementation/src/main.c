@@ -10,6 +10,7 @@
 
 #include "method_area.h"
 #include "interpreter.h" 
+#include "frame.h"
 
 int main(int argc, char *argv[]) {
     
@@ -96,6 +97,69 @@ int main(int argc, char *argv[]) {
         printf("Iniciando modo Interpretador (Motor de Execucao)...\n");
         
         // Código para o Interpretador
+
+        // Procura o método main
+        method_info *main_method = method_area_find_method(cf, "main", "([Ljava/lang/String;)V", 0x0001 | 0x0008);
+        if (main_method == NULL) {
+            fprintf(stderr, "Erro: Metodo 'main' nao encontrado na classe.\n");
+            free(cf);
+            return 1;
+        }
+        // prints para debug
+        printf("main encontrado\n");
+
+
+        // Procura o atributo Code
+        Code_attribute *code = method_area_get_code(cf, main_method);
+        if (code == NULL) {
+            fprintf(stderr, "Erro: atributo Code nao encontrado.\n");
+            free(cf);
+            return 1;
+        }
+        // prints para debug
+        printf("Code encontrado\n");
+        printf("max_stack = %d\n", code->max_stack);
+        printf("max_locals = %d\n", code->max_locals);
+        printf("code_length = %d\n", code->code_length);
+        printf("primeiro opcode = 0x%02X\n", code->code[0]);
+
+        // Cria o primeiro Frame
+        Frame *frame = frame_create(code, cf->constant_pool, cf->constant_pool_count);
+
+        if (frame == NULL) {
+            fprintf(stderr, "Erro ao criar Frame.\n");
+            free(cf);
+            return 1;
+        }
+        // prints para debug
+        printf("Frame criado\n");
+        printf("PC = %u\n", frame->pc);
+        printf("Primeiro opcode pelo frame = 0x%02X\n", frame->code[0]);
+
+        // Inicializa a JVM Stack
+        JVMStack stack;
+
+        jvm_stack_init(&stack, 1024 * 1024); // 1 MB
+
+        uint32_t frame_size = jvm_stack_frame_size(code->max_locals, code->max_stack);
+
+        // Empilha o primeiro Frame
+        JVMStackStatus status = jvm_stack_push(&stack, frame, frame_size);
+
+        //prints para debug
+        printf("Frames = %d\n", stack.frame_count);
+        printf("Current frame = %p\n", (void*)stack.current_frame); 
+
+        if (status != JVM_STACK_OK) {
+            fprintf(stderr, "Erro ao inicializar JVM Stack.\n");
+            frame_destroy(frame);
+            return 1;
+        }
+
+        // Inicia o Fetch-Decode-Execute
+        execute_engine(&stack);
+
+
     }
 
     // =======================================================

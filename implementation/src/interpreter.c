@@ -4,7 +4,9 @@
 #include "instruction.h" 
 
 void execute_engine(JVMStack *stack) {
-    
+    // print para debug
+    printf("Entrou no execute_engine\n");
+
     // Laço contínuo de execução
     while (!jvm_stack_is_empty(stack)) {
         
@@ -12,6 +14,7 @@ void execute_engine(JVMStack *stack) {
 
         // Lógica de busca (Fetch) do byte atual usando o PC
         uint8_t opcode = current_frame->code[current_frame->pc];
+        printf("PC=%u OPCODE=0x%02X\n", current_frame->pc - 1, opcode);
 
         // Atualização do PC para o opcode (1 byte). 
         current_frame->pc++;
