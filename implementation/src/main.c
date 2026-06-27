@@ -64,6 +64,11 @@ int main(int argc, char *argv[]) {
         perror("Erro ao fechar o file");
     }
 
+
+    // Inicializa a Method Area e registra a classe principal
+    method_area_init();
+    method_area_register(cf);
+
     // Bifurcação de Lógica (Leitor vs Interpretador)
     if (is_leitor) {
         printf("Iniciando modo Leitor/Exibidor...\n");
