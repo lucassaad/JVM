@@ -120,4 +120,23 @@ void pop_inst(Frame *frame);
 void dup(Frame *frame);
 void swap(Frame *frame);
 
+// Instrução de Desvio incondicional
+void goto_inst(Frame *frame);
+
+// Instruções de comparação com zero
+void ifeq(Frame *frame);
+void ifne(Frame *frame);
+void iflt(Frame *frame);
+void ifge(Frame *frame);
+void ifgt(Frame *frame);
+void ifle(Frame *frame);
+
+// Instruções de comparação entre dois valores:
+void if_icmpeq(Frame *frame);
+void if_icmpne(Frame *frame);
+void if_icmplt(Frame *frame);
+void if_icmpge(Frame *frame);
+void if_icmpgt(Frame *frame);
+void if_icmple(Frame *frame);
+
 #endif

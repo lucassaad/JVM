@@ -765,3 +765,127 @@ void swap(Frame *frame) {
     frame_push_raw(frame, value1);
     frame_push_raw(frame, value2);
 }
+
+// Opcode: 0xA7
+void goto_inst(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0x99
+void ifeq(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    int32_t value = frame_pop_int(frame);
+    if (value == 0) frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0x9A
+void ifne(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    int32_t value = frame_pop_int(frame);
+    if (value != 0) frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0x9B
+void iflt(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    int32_t value = frame_pop_int(frame);
+    if (value < 0) frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0x9C
+void ifge(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    int32_t value = frame_pop_int(frame);
+    if (value >= 0) frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0x9D
+void ifgt(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    int32_t value = frame_pop_int(frame);
+    if (value > 0) frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0x9E
+void ifle(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    int32_t value = frame_pop_int(frame);
+    if (value <= 0) frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0x9F
+void if_icmpeq(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    // retira da pilha de operandos 
+    int32_t value2 = frame_pop_int(frame);
+    int32_t value1 = frame_pop_int(frame);
+    if (value1 == value2) frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0xA0
+void if_icmpne(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    // retira da pilha de operandos 
+    int32_t value2 = frame_pop_int(frame);
+    int32_t value1 = frame_pop_int(frame);
+    if (value1 != value2) frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0xA1
+void if_icmplt(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    int32_t value2 = frame_pop_int(frame);
+    int32_t value1 = frame_pop_int(frame);
+    if (value1 < value2) frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0xA2
+void if_icmpge(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    int32_t value2 = frame_pop_int(frame);
+    int32_t value1 = frame_pop_int(frame);
+    if (value1 >= value2) frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0xA3
+void if_icmpgt(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    int32_t value2 = frame_pop_int(frame);
+    int32_t value1 = frame_pop_int(frame);
+    if (value1 > value2) frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0xA4
+void if_icmple(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    int32_t value2 = frame_pop_int(frame);
+    int32_t value1 = frame_pop_int(frame);
+    if (value1 <= value2) frame->pc = opcode_pc + (int32_t)offset;
+}

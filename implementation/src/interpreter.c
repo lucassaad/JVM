@@ -74,8 +74,25 @@ void execute_engine(JVMStack *stack) {
             // INSTRUÇÕES DE OBJETOS
             case 0xBB: new(current_frame); break;  
             case 0xB4: getfield(current_frame); break;  
-            case 0xB5: putfield(current_frame); break;  
+            case 0xB5: putfield(current_frame); break;
             
+            // INSTRUÇÕES DE DESVIO
+            case 0xA7: goto_inst(current_frame); break;
+
+            case 0x99: ifeq(current_frame); break;
+            case 0x9A: ifne(current_frame); break;
+            case 0x9B: iflt(current_frame); break;
+            case 0x9C: ifge(current_frame); break;
+            case 0x9D: ifgt(current_frame); break;
+            case 0x9E: ifle(current_frame); break;
+
+            case 0x9F: if_icmpeq(current_frame); break;
+            case 0xA0: if_icmpne(current_frame); break;
+            case 0xA1: if_icmplt(current_frame); break;
+            case 0xA2: if_icmpge(current_frame); break;
+            case 0xA3: if_icmpgt(current_frame); break;
+            case 0xA4: if_icmple(current_frame); break;
+
             // DEFAULT (Instrução não mapeada)
             default:
                 fprintf(stderr, "Opcode desconhecido: 0x%02X na posicao %d\n", opcode, current_frame->pc - 1);
