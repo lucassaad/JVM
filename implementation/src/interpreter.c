@@ -21,6 +21,11 @@ void execute_engine(JVMStack *stack) {
 
         // Motor de Despacho com switch(opcode)
         switch (opcode) {
+             // INSTRUÇÕES DE RESOLUÇÃO DE CONSTANTES
+            case 0x12: ldc(current_frame); break;    // ldc      (índice ocupa 1 byte)
+            case 0x13: ldc_w(current_frame); break;  // ldc_w    (índice ocupa 2 bytes)
+            case 0x14: ldc2_w(current_frame); break; // ldc2_w   (long/double, índice ocupa 2 bytes)
+
             // INSTRUÇÕES MATEMÁTICAS
             case 0x60: iadd(current_frame); break;
             case 0x64: isub(current_frame); break;

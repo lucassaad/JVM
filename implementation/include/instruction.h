@@ -66,6 +66,10 @@ void new(Frame *frame);
 void putfield(Frame *frame);
 void getfield(Frame *frame);
 
+// Instruções de resolução de constantes da Constant Pool
+void ldc(Frame *frame);
+void ldc_w(Frame *frame);
+void ldc2_w(Frame *frame);
 
 // Instruções envolvendo constantes
 void aconst_null(Frame *frame);
