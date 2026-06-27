@@ -547,6 +547,134 @@ void getfield(Frame *frame) {
     }
 }
 
+// INSTRUÇÕES DE RESOLUÇÃO DE CONSTANTES DA CONSTANT POOL
+ 
+// Função auxiliar para executar a lógica de ldc/ldc_w dado um índice já resolvido (1 ou 2 bytes).
+// Busca a entrada na referência à CP, presente no frame, 
+// identifica o tipo pela tag e empilha o valor correto.
+static void ldc_resolve(Frame *frame, uint16_t index) {
+    // Obtém a entrada genérica da Constant Pool pelo índice
+    cp_info *entry = frame->constant_pool[index];
+ 
+    // A tag (primeiro byte - 8 bits - de toda entrada da CP) identifica o tipo da constante
+    uint8_t tag = entry->tag;
+ 
+    switch (tag) {
+ 
+        case CONSTANT_Integer: {
+            // CONSTANT_Integer_info armazena os 4 bytes do int em 'bytes'
+            CONSTANT_Integer_info *info = (CONSTANT_Integer_info *) entry->info;
+ 
+            // Os bytes estão em big-endian (convertido no momento da leitura)
+            // A função frame_push_int recebe um inteiro com sinal, então usamos memcpy para 
+            // transformar o atributo "bytes" (unsigned - uint32_t) em signed (int32_t)
+            int32_t value;
+            memcpy(&value, &info->bytes, sizeof(int32_t));
+            frame_push_int(frame, value);
+            break;
+        }
+ 
+        case CONSTANT_Float: {
+            // CONSTANT_Float_info armazena os 4 bytes do float em 'bytes'
+            CONSTANT_Float_info *info = (CONSTANT_Float_info *) entry->info;
+ 
+            // A função frame_push_float recebe um float (com sinal), então usamos memcpy para 
+            // transformar o atributo "bytes" (unsigned - uint32_t) em float (signed)
+            float value;
+            memcpy(&value, &info->bytes, sizeof(float));
+            frame_push_float(frame, value);
+            break;
+        }
+ 
+        case CONSTANT_String: {
+            // CONSTANT_String_info tem um string_index que aponta para um CONSTANT_Utf8_info
+            // Como não implementamos heap, empilhamos o próprio índice do Utf8 como referência
+            CONSTANT_String_info *str_info = (CONSTANT_String_info *) entry->info;
+            frame_push_ref(frame, str_info->string_index);
+            break;
+        }
+ 
+        default:
+            // Se não é nenhum dos casos acima, dá erro
+            fprintf(stderr, "ldc: tipo de constante nao suportado (tag=%u, index=%u)\n", tag, index);
+            exit(1);
+    }
+}
+ 
+// Opcode: 0x12 — ldc: índice de 1 byte (acessa entradas 1-255 da CP)
+void ldc(Frame *frame) {
+    // Lê o índice (1 byte sem sinal) e incremente o PC
+    uint8_t index = frame->code[frame->pc++];
+
+    // Chama a função auxiliar para fazer a resolução
+    ldc_resolve(frame, (uint16_t) index);
+}
+ 
+// Opcode: 0x13 — ldc_w: índice de 2 bytes (acessa qualquer entrada da CP)
+// Necessário quando o índice não cabe em 1 byte (> 255)
+void ldc_w(Frame *frame) {
+    // Lê os 2 bytes do índice em big-endian e incrementa o PC
+    uint8_t byte1 = frame->code[frame->pc++];
+    uint8_t byte2 = frame->code[frame->pc++];
+
+    // Junta os dois bytes para formar o índice a ser passado como argumento para
+    // a função de resolução de constantes
+    uint16_t index = (uint16_t)((byte1 << 8) | byte2);
+    ldc_resolve(frame, index);
+}
+ 
+// Opcode: 0x14 — ldc2_w: carrega long ou double (categoria 2, 2 slots) com índice de 2 bytes
+void ldc2_w(Frame *frame) {
+    // Lê os 2 bytes do índice em big-endian e avança o PC
+    uint8_t byte1 = frame->code[frame->pc++];
+    uint8_t byte2 = frame->code[frame->pc++];
+
+    // Junta os dois bytes para formar o índice a ser passado como argumento para
+    // a função de resolução de constantes
+    uint16_t index = (uint16_t)((byte1 << 8) | byte2);
+ 
+    // Como funciona tanto para Long quanto para Double, devemos descobrir o tipo exato por meio da tag
+    cp_info *entry = frame->constant_pool[index];
+    uint8_t tag = entry->tag;
+ 
+    switch (tag) {
+ 
+        case CONSTANT_Long: {
+            // CONSTANT_Long_info divide os 8 bytes em high_bytes (32 bits) e low_bytes (32 bits)
+            CONSTANT_Long_info *info = (CONSTANT_Long_info *) entry->info;
+ 
+            // Junta os dois bytes para formar o int64_t combinando as duas metades em big-endian
+            uint64_t raw = ((uint64_t) info->high_bytes << 32) | (uint64_t) info->low_bytes;
+
+            // Usa o memcpy para transformar o unsigned em signed, a fim de evitar
+            // erros de interpretação e casting
+            int64_t value;
+            memcpy(&value, &raw, sizeof(int64_t));
+            frame_push_long(frame, value);
+            break;
+        }
+ 
+        case CONSTANT_Double: {
+            // CONSTANT_Double_info divide os 8 bytes em high_bytes (32 bits) e low_bytes (32 bits)
+            CONSTANT_Double_info *info = (CONSTANT_Double_info *) entry->info;
+            
+            // Junta os dois bytes para formar o int64_t combinando as duas metades em big-endian
+            uint64_t raw = ((uint64_t) info->high_bytes << 32) | (uint64_t) info->low_bytes;
+            
+            // Usa o memcpy para transformar o unsigned em signed, a fim de evitar
+            // erros de interpretação e casting
+            double value;
+            memcpy(&value, &raw, sizeof(double));
+            frame_push_double(frame, value);
+            break;
+        }
+ 
+        default:
+            fprintf(stderr, "ldc2_w: tipo de constante nao suportado (tag=%u, index=%u)\n", tag, index);
+            exit(1);
+    }
+}
+
 // INSTRUÇÕES ENVOLVENDO CONSTANTES 
 // Opcode: 0x01
 void aconst_null(Frame *frame) {
