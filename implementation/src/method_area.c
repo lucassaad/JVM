@@ -4,18 +4,124 @@
 #include "method_area.h"
 #include "constant_pool.h"  
 
-ClassFile* method_area_resolve_class(cp_info **constant_pool, uint16_t index) {
-    // TODO: Implementar a busca real da classe na Área de Métodos global.
-    // O index aponta para CONSTANT_Class_info no constant_pool.
-    
-    // Por enquanto, para compilar a Issue #82 com sucesso:
-    printf("Aviso: method_area_resolve_class invocada, mas a busca global ainda nao foi implementada.\n");
-    
-    // Para evitar que o compilador reclame dos parâmetros não usados:
-    (void)constant_pool;
-    (void)index;
-    
-    return NULL; 
+// inicia a Method Area global
+MethodArea method_area = {
+    NULL,
+    0,
+    0
+};
+
+// Função para inicializar a Method Area
+void method_area_init(void)
+{
+    method_area.capacity = 8;
+    method_area.class_count = 0;
+    method_area.classes = malloc(sizeof(ClassFile *) * method_area.capacity);
+
+    if (method_area.classes == NULL) {
+        fprintf(stderr, "Erro ao inicializar Method Area.\n");
+        exit(1);
+    }
+}
+
+// Função para registrar uma classe na Method Area
+void method_area_register(ClassFile *cf)
+{
+    if (method_area.class_count == method_area.capacity) {
+
+        method_area.capacity *= 2;
+
+        method_area.classes = realloc(method_area.classes, sizeof(ClassFile *) * method_area.capacity);
+
+        if (method_area.classes == NULL) {
+            fprintf(stderr, "Erro ao expandir Method Area.\n");
+            exit(1);
+        }
+    }
+
+    method_area.classes[method_area.class_count++] = cf;
+}
+
+// Função para buscar uma classe carregada na Method Area pelo nome
+ClassFile *method_area_find_loaded(const char *class_name)
+{
+    for (uint16_t i = 0; i < method_area.class_count; i++) {
+
+        ClassFile *cf = method_area.classes[i];
+
+        CONSTANT_Class_info *this_class =
+            (CONSTANT_Class_info *)
+            cf->constant_pool[cf->this_class]->info;
+
+        CONSTANT_Utf8_info *utf8 =
+            (CONSTANT_Utf8_info *)
+            cf->constant_pool[this_class->name_index]->info;
+
+        if (utf8->length == strlen(class_name) && strncmp((char *)utf8->bytes, class_name, utf8->length) == 0) {
+            return cf;
+        }
+    }
+
+    return NULL;
+}
+
+// Função para carregar uma classe da Method Area a partir de um arquivo .class
+ClassFile *method_area_load(const char *class_name)
+{
+    char filename[512];
+
+    snprintf(filename, sizeof(filename), "%s.class", class_name);
+
+    FILE *fp = fopen(filename, "rb");
+
+    if (fp == NULL)
+        return NULL;
+
+    ClassFile *cf = malloc(sizeof(ClassFile));
+
+    if (cf == NULL) {
+        fclose(fp);
+        return NULL;
+    }
+
+    if (read_classfile(cf, fp) != 0) {
+        fclose(fp);
+        free(cf);
+        return NULL;
+    }
+
+    fclose(fp);
+
+    method_area_register(cf);
+
+    return cf;
+}
+
+ClassFile *method_area_resolve_class(cp_info **constant_pool, uint16_t index) {
+    CONSTANT_Class_info *class_info = (CONSTANT_Class_info *)constant_pool[index]->info;
+
+    CONSTANT_Utf8_info *utf8 = (CONSTANT_Utf8_info *)constant_pool[class_info->name_index]->info;
+
+    char class_name[256];
+
+    memcpy(class_name, utf8->bytes, utf8->length);
+
+    class_name[utf8->length] = '\0';
+
+    ClassFile *cf = method_area_find_loaded(class_name);
+
+    if (cf != NULL) return cf;
+
+    printf("Carregando classe %s...\n", class_name);
+
+    cf = method_area_load(class_name);
+
+    if (cf == NULL) {
+        fprintf(stderr, "Nao foi possivel carregar %s.class\n", class_name);
+        exit(1);
+    }
+
+    return cf;
 }
 
 // Função que calcula o índice real no vetor obj->fields usando as strings (Utf8)
