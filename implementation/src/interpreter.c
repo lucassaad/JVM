@@ -21,10 +21,61 @@ void execute_engine(JVMStack *stack) {
 
         // Motor de Despacho com switch(opcode)
         switch (opcode) {
+            // INSTRUÇÕES ENVOLVENDO CONSTANTES
+            case 0x01: aconst_null(current_frame); break;
+            case 0x02: iconst_m1(current_frame); break;
+            case 0x03: iconst_0(current_frame); break;
+            case 0x04: iconst_1(current_frame); break;
+            case 0x05: iconst_2(current_frame); break;
+            case 0x06: iconst_3(current_frame); break;
+            case 0x07: iconst_4(current_frame); break;
+            case 0x08: iconst_5(current_frame); break;
+            case 0x10: bipush(current_frame); break;
+            case 0x11: sipush(current_frame); break;
+
              // INSTRUÇÕES DE RESOLUÇÃO DE CONSTANTES
             case 0x12: ldc(current_frame); break;    // ldc      (índice ocupa 1 byte)
             case 0x13: ldc_w(current_frame); break;  // ldc_w    (índice ocupa 2 bytes)
             case 0x14: ldc2_w(current_frame); break; // ldc2_w   (long/double, índice ocupa 2 bytes)
+
+            // INSTRUÇÕES DE CARREGAMENTO
+            case 0x15: iload(current_frame); break;
+            case 0x16: lload(current_frame); break;
+            case 0x17: fload(current_frame); break;
+            case 0x18: dload(current_frame); break;
+            case 0x19: aload(current_frame); break;
+
+            case 0x1A: iload_0(current_frame); break;
+            case 0x1B: iload_1(current_frame); break;
+            case 0x1C: iload_2(current_frame); break;
+            case 0x1D: iload_3(current_frame); break;
+
+            case 0x2A: aload_0(current_frame); break;
+            case 0x2B: aload_1(current_frame); break;
+            case 0x2C: aload_2(current_frame); break;
+            case 0x2D: aload_3(current_frame); break;
+
+            // INSTRUÇÕES DE ARMAZENAMENTO
+            case 0x36: istore(current_frame); break;
+            case 0x37: lstore(current_frame); break;
+            case 0x38: fstore(current_frame); break;
+            case 0x39: dstore(current_frame); break;
+            case 0x3A: astore(current_frame); break;
+
+            case 0x3B: istore_0(current_frame); break;
+            case 0x3C: istore_1(current_frame); break;
+            case 0x3D: istore_2(current_frame); break;
+            case 0x3E: istore_3(current_frame); break;
+
+            case 0x4B: astore_0(current_frame); break;
+            case 0x4C: astore_1(current_frame); break;
+            case 0x4D: astore_2(current_frame); break;
+            case 0x4E: astore_3(current_frame); break;
+
+            // INSTRUÇÕES DE MANIPULAÇÃO DA PILHA
+            case 0x57: pop_inst(current_frame); break; 
+            case 0x59: dup(current_frame); break;
+            case 0x5F: swap(current_frame); break;
 
             // INSTRUÇÕES MATEMÁTICAS
             case 0x60: iadd(current_frame); break;
