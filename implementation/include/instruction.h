@@ -98,6 +98,8 @@ void iconst_4(Frame *frame);
 void iconst_5(Frame *frame);
 void bipush(Frame *frame);
 void sipush(Frame *frame);
+void dconst_0(Frame *frame);
+void dconst_1(Frame *frame);
 
 // Instruções de Carregamento
 void iload(Frame *frame);
@@ -158,6 +160,8 @@ void if_icmplt(Frame *frame);
 void if_icmpge(Frame *frame);
 void if_icmpgt(Frame *frame);
 void if_icmple(Frame *frame);
+void dcmpl(Frame *frame);
+void dcmpg(Frame *frame);
 
 // Instruções de Conversão de Tipos
 void i2f(Frame *frame);
@@ -167,6 +171,9 @@ void d2i(Frame *frame);
 void i2b(Frame *frame);
 void i2c(Frame *frame);
 void i2s(Frame *frame);
+void d2i(Frame *frame);
+void d2l(Frame *frame);
+void d2f(Frame *frame);
 
 // Instruções Relativas a Atributos Estáticos 
 void getstatic(Frame *frame);

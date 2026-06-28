@@ -767,6 +767,16 @@ void iconst_5(Frame *frame)  {
     frame_push_int(frame, 5); 
 }  
 
+// Opcode 0x0E
+void dconst_0(Frame *frame) {
+    frame_push_double(frame, 0.0);
+}
+
+// Opcode 0x0F
+void dconst_1(Frame *frame) {
+    frame_push_double(frame, 1.0);
+}
+
 // Opcode: 0x10
 void bipush(Frame *frame) {
     int8_t byte = (int8_t)frame->code[frame->pc++];
@@ -1069,6 +1079,38 @@ void if_icmple(Frame *frame) {
     if (value1 <= value2) frame->pc = opcode_pc + (int32_t)offset;
 }
 
+// Opcode 0x97
+void dcmpl(Frame *frame) {
+    double val2 = frame_pop_double(frame);
+    double val1 = frame_pop_double(frame);
+    
+    if (isnan(val1) || isnan(val2)) {
+        frame_push_int(frame, -1); 
+    } else if (val1 > val2) {
+        frame_push_int(frame, 1);
+    } else if (val1 < val2) {
+        frame_push_int(frame, -1);
+    } else {
+        frame_push_int(frame, 0); 
+    }
+}
+
+// Opcode 0x98
+void dcmpg(Frame *frame) {
+    double val2 = frame_pop_double(frame);
+    double val1 = frame_pop_double(frame);
+    
+    if (isnan(val1) || isnan(val2)) {
+        frame_push_int(frame, 1); 
+    } else if (val1 > val2) {
+        frame_push_int(frame, 1);
+    } else if (val1 < val2) {
+        frame_push_int(frame, -1);
+    } else {
+        frame_push_int(frame, 0); 
+    }
+}
+
 //  INSTRUÇÕES DE CONVERSÃO DE TIPOS
 // Opcode: 0x86
 void i2f(Frame *frame) {
@@ -1104,6 +1146,18 @@ void i2c(Frame *frame) {
 void i2s(Frame *frame) {
     int32_t val = frame_pop_int(frame);
     frame_push_int(frame, (int32_t)(int16_t)val); 
+}
+
+// Opcode 0x8F
+void d2l(Frame *frame) {
+    double val = frame_pop_double(frame);
+    frame_push_long(frame, (int64_t)val);
+}
+
+// Opcode 0x90
+void d2f(Frame *frame) {
+    double val = frame_pop_double(frame);
+    frame_push_float(frame, (float)val);
 }
 
 // INSTRUÇÕES RELATIVAS A ATRIBUTOS ESTÁTICOS 
@@ -1284,6 +1338,9 @@ void invokevirtual(Frame *frame, JVMStack *stack) {
             printf("%lf", frame_pop_double(frame));
         } else if (strncmp(m_desc, "(C)V", 4) == 0) {
             printf("%c", (char)frame_pop_int(frame));
+        } else if (strncmp(m_desc, "(J)V", 4) == 0) { 
+            int64_t val = frame_pop_long(frame);
+            printf("%lld", (long long)val);
         } else if (m_desc[1] == 'L' || m_desc[1] == '[') {
             uint32_t ref = frame_pop_ref(frame);
             if (ref == 0) printf("null");

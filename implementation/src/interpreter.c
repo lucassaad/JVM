@@ -34,6 +34,8 @@ void execute_engine(JVMStack *stack, ClassFile *cf)  {
             case 0x06: iconst_3(current_frame); break;
             case 0x07: iconst_4(current_frame); break;
             case 0x08: iconst_5(current_frame); break;
+            case 0x0E: dconst_0(current_frame); break; 
+            case 0x0F: dconst_1(current_frame); break;
             case 0x10: bipush(current_frame); break;
             case 0x11: sipush(current_frame); break;
 
@@ -173,12 +175,16 @@ void execute_engine(JVMStack *stack, ClassFile *cf)  {
             case 0xA2: if_icmpge(current_frame); break;
             case 0xA3: if_icmpgt(current_frame); break;
             case 0xA4: if_icmple(current_frame); break;
+            case 0x97: dcmpl(current_frame); break;
+            case 0x98: dcmpg(current_frame); break;
 
             //  INSTRUÇÕES DE CONVERSÃO DE TIPOS
             case 0x86: i2f(current_frame); break;
             case 0x87: i2d(current_frame); break;
             case 0x8B: f2i(current_frame); break;
-            case 0x8E: d2i(current_frame); break;
+            case 0x8E: d2i(current_frame); break; 
+            case 0x8F: d2l(current_frame); break; 
+            case 0x90: d2f(current_frame); break;
             case 0x91: i2b(current_frame); break;
             case 0x92: i2c(current_frame); break;
             case 0x93: i2s(current_frame); break;
