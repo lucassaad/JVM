@@ -1,3 +1,30 @@
+/**
+ * @file instruction_viewer.c
+ * @brief Implementação do disassembler de bytecode para o modo Leitor/Exibidor.
+ *
+ * Implementa view_instructions(), que percorre o array de bytes do atributo Code
+ * de um método e imprime cada instrução no formato:
+ *   <offset>: <mnemônico> [operandos]
+ *
+ * Detalhes de implementação:
+ * - Instruções de largura fixa (1 byte): apenas imprime o mnemônico e avança pc += 1.
+ * - Instruções com operando de 1 byte (e.g. iload, bipush): lê code[pc+1] e avança pc += 2.
+ * - Instruções com operando de 2 bytes (e.g. getstatic, invokevirtual): reconstrói o
+ *   índice de 16 bits com (code[pc+1] << 8) | code[pc+2] e avança pc += 3.
+ * - tableswitch (0xAA): aplica padding até alinhamento de 4 bytes, depois lê
+ *   default, low, high (4 bytes cada) e (high-low+1) offsets de 4 bytes.
+ * - lookupswitch (0xAB): aplica padding até alinhamento de 4 bytes, depois lê
+ *   default, npairs (4 bytes cada) e npairs pares (match, offset) de 4 bytes cada.
+ * - invokeinterface (0xB9): lê índice de 2 bytes + count de 1 byte + 1 byte reservado
+ *   (avança pc += 5 no total).
+ * - multianewarray (0xC5): lê índice de 2 bytes + número de dimensões de 1 byte
+ *   (avança pc += 4 no total).
+ * - Opcodes desconhecidos: imprime "unknown opcode 0xXX" e avança pc += 1 para
+ *   não travar o laço.
+ * - O parâmetro cf é recebido mas não utilizado nesta implementação (marcado com
+ *   (void)cf para suprimir warning do compilador).
+ */
+
 #include <stdio.h>
 #include <stdint.h>
 

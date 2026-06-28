@@ -1,8 +1,41 @@
+/**
+ * @file method_area.c
+ * @brief Implementação da Method Area: cache de classes e resolução de símbolos.
+ *
+ * A Method Area global é um vetor dinâmico de ponteiros ClassFile*, inicializado
+ * com capacidade 8 e duplicado via realloc a cada expansão.
+ *
+ * Estratégia cache-first em method_area_resolve_class():
+ * 1. Navega o constant pool para extrair o nome da classe (Class → Utf8).
+ * 2. Chama method_area_find_loaded() — busca linear por nome via CP this_class.
+ * 3. Se não encontrada, chama method_area_load() que abre "exemplos/<nome>.class",
+ *    executa read_classfile() e registra a classe automaticamente no cache.
+ * 4. Carregamento dinâmico é registrado em exec_log (se aberto); falha termina
+ *    com exit(1).
+ *
+ * Cálculo de offset de campo (resolve_field_offset):
+ * - Usa dois constant pools distintos: frame_cp (da classe chamadora, para
+ *   identificar o field alvo via Fieldref → NameAndType) e class_ref->constant_pool
+ *   (da classe do objeto, para varrer os fields de instância em ordem).
+ * - Itera apenas sobre fields sem ACC_STATIC (0x0008), acumulando memory_offset:
+ *   tipos 'J' (long) e 'D' (double) avançam 2 posições; demais avançam 1.
+ * - O offset é retornado ao encontrar o field por nome e descritor (ambos
+ *   comparados byte a byte). Campo não encontrado termina com exit(1).
+ *
+ * method_area_find_method() filtra por required_flags: somente métodos que
+ * possuam TODOS os bits de required_flags em access_flags são considerados.
+ * Passar 0 como required_flags desabilita o filtro de flags.
+ *
+ * method_area_get_code() varre os atributos do method_info e retorna o payload
+ * do primeiro atributo cujo nome seja "Code", ou NULL se ausente (método nativo
+ * ou abstrato).
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>        
+#include <string.h>
 #include "method_area.h"
-#include "constant_pool.h"  
+#include "constant_pool.h"
 #include "reader.h"
 
 

@@ -1,3 +1,42 @@
+/**
+ * @file instruction.c
+ * @brief Implementação de todas as instruções bytecode da JVM.
+ *
+ * Cada função implementa um opcode JVM, operando diretamente sobre o Frame
+ * corrente (pilha de operandos, variáveis locais, PC) e, quando necessário,
+ * sobre a JVMStack (invocações de método).
+ *
+ * Convenções gerais de implementação:
+ * - Operandos inline são lidos incrementando frame->pc manualmente após o
+ *   interpretador já ter avançado 1 byte pelo opcode.
+ * - Desvios condicionais e incondicionais calculam o destino como
+ *   opcode_pc + offset, onde opcode_pc é o PC salvo antes de ler os operandos.
+ * - Referências a objetos e arrays são armazenadas como uint32_t (uintptr_t
+ *   truncado) e reconstituídas com cast para ponteiro via (uintptr_t).
+ * - Tipos de 64 bits (long, double) são divididos em 2 slots de 32 bits
+ *   (big-endian) na pilha e nas variáveis locais; memcpy é usado para
+ *   converter entre uint64_t e os tipos com sinal/ponto flutuante.
+ *
+ * Mocks e hacks acadêmicos presentes:
+ * - getstatic/putstatic: detectam "java/lang/System.out" e empilham/descartam
+ *   uma referência nula (ref=0) para permitir chamadas a println.
+ * - invokevirtual: detecta "java/io/PrintStream.println" e "print" e imprime
+ *   diretamente via printf para int, float, double, char, long e String.
+ *   Strings são resolvidas percorrendo CP_String → CP_Utf8.
+ * - invokespecial: detecta "java/lang/Object.<init>" e apenas consome o "this"
+ *   da pilha sem criar frame, simulando o construtor padrão.
+ * - invokestatic: detecta o método "Soma(String,String)String" e retorna a
+ *   primeira String de entrada como mock de concatenação.
+ * - multianewarray: suporta apenas arrays de 2 dimensões (limitação acadêmica).
+ *
+ * Função auxiliar estática:
+ * - get_field_descriptor_first_char(): navega CP Fieldref → NameAndType → Utf8
+ *   e retorna o primeiro caractere do descritor do campo, usado por getfield e
+ *   putfield para determinar se o campo é de 64 bits ('J' ou 'D').
+ * - ldc_resolve(): lógica comum a ldc e ldc_w para resolver Integer, Float e
+ *   String a partir de um índice já decodificado do constant pool.
+ */
+
 #include "instruction.h"
 #include "constant_pool.h"
 #include "method_area.h"

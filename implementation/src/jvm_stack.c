@@ -1,3 +1,27 @@
+/**
+ * @file jvm_stack.c
+ * @brief Implementação da pilha de frames da JVM (lista encadeada simples).
+ *
+ * A JVMStack é uma lista encadeada de frames linkados pelo campo
+ * frame->previous_frame. O frame do topo é sempre stack->current_frame.
+ *
+ * Gerenciamento do pc_register global:
+ * - jvm_stack_push() atualiza pc_register para frame->pc do novo frame (sempre 0).
+ * - jvm_stack_pop() restaura pc_register para frame->pc do frame chamador, ou 0
+ *   se a pilha ficou vazia.
+ * - O interpretador sincroniza pc_register novamente ao final de cada ciclo,
+ *   garantindo coerência após instruções que alteram o PC (desvios, invocações).
+ *
+ * Cálculo de tamanho (jvm_stack_frame_size):
+ * - Estimativa conservadora: sizeof(Frame) + max_locals*4 + max_stack*4 bytes.
+ * - Usado por push/pop para rastrear current_size_bytes e detectar overflow.
+ * - O limite max_size_bytes é configurável; 0 desabilita a verificação.
+ *
+ * jvm_stack_pop() NÃO libera o frame removido — retorna o ponteiro para que
+ * frame_pop_method() possa copiar o valor de retorno para o frame chamador
+ * antes de chamar frame_destroy().
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "jvm_stack.h"

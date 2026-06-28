@@ -1,3 +1,31 @@
+/**
+ * @file utils.c
+ * @brief Utilitários de conversão big-endian e liberação recursiva de ClassFile.
+ *
+ * byteswap_u2 e byteswap_u4 realizam a conversão de big-endian (formato `.class`)
+ * para little-endian (x86/x64) por manipulação de bits, sem depender de funções
+ * de sistema (ntohs/ntohl), garantindo portabilidade.
+ *
+ * deep_free() percorre e libera toda a hierarquia de memória de um ClassFile
+ * na ordem inversa de dependência:
+ *   1. Constant pool: itera de i=1 (índice 0 é reservado); ao encontrar tag 5
+ *      (CONSTANT_Long) ou 6 (CONSTANT_Double) incrementa i para pular o slot
+ *      fantasma NULL que ocupa o índice seguinte. Libera entry->info e entry.
+ *   2. Interfaces: vetor plano de uint16_t, free simples.
+ *   3. Fields: para cada field, libera o vetor de atributos (info de cada um)
+ *      antes de liberar o vetor de fields.
+ *   4. Methods: para cada método, distingue o atributo "Code" dos demais — Code
+ *      possui alocação interna extra (code->code, o array de bytecode) que deve
+ *      ser liberado antes do próprio Code_attribute. Atributos desconhecidos são
+ *      tratados como buffer bruto (free direto). Por fim libera o vetor de atributos
+ *      e o vetor de methods.
+ *   5. Atributos da classe (ex: SourceFile): info liberado individualmente, depois
+ *      o vetor.
+ *   6. A própria struct ClassFile é liberada por último.
+ *
+ * O ponteiro cf em si é liberado — o chamador não deve acessá-lo após deep_free().
+ */
+
 #include <stdint.h>
 #include <stdlib.h>
 #include "utils.h"

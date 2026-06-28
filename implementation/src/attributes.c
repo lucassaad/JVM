@@ -1,3 +1,18 @@
+/**
+ * @file attributes.c
+ * @brief Implementação da leitura de atributos específicos do formato `.class`.
+ *
+ * Contém a implementação de read_specific_attribute_info(), que atua como
+ * dispatcher: com base no nome do atributo, aloca a struct correta, lê os
+ * bytes do arquivo convertendo de big-endian para little-endian via byteswap,
+ * e retorna o ponteiro genérico para o payload preenchido.
+ *
+ * Atributos suportados: Code, ConstantValue, Exceptions, InnerClasses,
+ * SourceFile, LineNumberTable e LocalVariableTable. Atributos desconhecidos
+ * são lidos como buffer bruto de bytes para preservar o avanço correto do
+ * ponteiro de leitura no arquivo.
+ */
+
 #include <stdlib.h>
 #include <string.h>
 #include "attributes.h"
