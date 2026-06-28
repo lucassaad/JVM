@@ -66,6 +66,10 @@ void new(Frame *frame);
 void putfield(Frame *frame);
 void getfield(Frame *frame);
 
+// Instruções de resolução de constantes da Constant Pool
+void ldc(Frame *frame);
+void ldc_w(Frame *frame);
+void ldc2_w(Frame *frame);
 
 // Instruções envolvendo constantes
 void aconst_null(Frame *frame);
@@ -119,5 +123,40 @@ void astore_3(Frame *frame);
 void pop_inst(Frame *frame); 
 void dup(Frame *frame);
 void swap(Frame *frame);
+
+// Instrução de Desvio incondicional
+void goto_inst(Frame *frame);
+
+// Instruções de comparação com zero
+void ifeq(Frame *frame);
+void ifne(Frame *frame);
+void iflt(Frame *frame);
+void ifge(Frame *frame);
+void ifgt(Frame *frame);
+void ifle(Frame *frame);
+
+// Instruções de comparação entre dois valores:
+void if_icmpeq(Frame *frame);
+void if_icmpne(Frame *frame);
+void if_icmplt(Frame *frame);
+void if_icmpge(Frame *frame);
+void if_icmpgt(Frame *frame);
+void if_icmple(Frame *frame);
+
+// Instruções de Conversão de Tipos
+void i2f(Frame *frame);
+void i2d(Frame *frame);
+void f2i(Frame *frame);
+void d2i(Frame *frame);
+void i2b(Frame *frame);
+void i2c(Frame *frame);
+void i2s(Frame *frame);
+
+// Instruções Relativas a Atributos Estáticos 
+void getstatic(Frame *frame);
+void putstatic(Frame *frame);
+
+// Instrução de Invocação de Métodos 
+void invokevirtual(Frame *frame);
 
 #endif

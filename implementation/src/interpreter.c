@@ -58,6 +58,62 @@ void execute_engine(JVMStack *stack, ClassFile *cf)  {
 
         // Motor de Despacho com switch(opcode)
         switch (opcode) {
+            // INSTRUÇÕES ENVOLVENDO CONSTANTES
+            case 0x01: aconst_null(current_frame); break;
+            case 0x02: iconst_m1(current_frame); break;
+            case 0x03: iconst_0(current_frame); break;
+            case 0x04: iconst_1(current_frame); break;
+            case 0x05: iconst_2(current_frame); break;
+            case 0x06: iconst_3(current_frame); break;
+            case 0x07: iconst_4(current_frame); break;
+            case 0x08: iconst_5(current_frame); break;
+            case 0x10: bipush(current_frame); break;
+            case 0x11: sipush(current_frame); break;
+
+             // INSTRUÇÕES DE RESOLUÇÃO DE CONSTANTES
+            case 0x12: ldc(current_frame); break;    // ldc      (índice ocupa 1 byte)
+            case 0x13: ldc_w(current_frame); break;  // ldc_w    (índice ocupa 2 bytes)
+            case 0x14: ldc2_w(current_frame); break; // ldc2_w   (long/double, índice ocupa 2 bytes)
+
+            // INSTRUÇÕES DE CARREGAMENTO
+            case 0x15: iload(current_frame); break;
+            case 0x16: lload(current_frame); break;
+            case 0x17: fload(current_frame); break;
+            case 0x18: dload(current_frame); break;
+            case 0x19: aload(current_frame); break;
+
+            case 0x1A: iload_0(current_frame); break;
+            case 0x1B: iload_1(current_frame); break;
+            case 0x1C: iload_2(current_frame); break;
+            case 0x1D: iload_3(current_frame); break;
+
+            case 0x2A: aload_0(current_frame); break;
+            case 0x2B: aload_1(current_frame); break;
+            case 0x2C: aload_2(current_frame); break;
+            case 0x2D: aload_3(current_frame); break;
+
+            // INSTRUÇÕES DE ARMAZENAMENTO
+            case 0x36: istore(current_frame); break;
+            case 0x37: lstore(current_frame); break;
+            case 0x38: fstore(current_frame); break;
+            case 0x39: dstore(current_frame); break;
+            case 0x3A: astore(current_frame); break;
+
+            case 0x3B: istore_0(current_frame); break;
+            case 0x3C: istore_1(current_frame); break;
+            case 0x3D: istore_2(current_frame); break;
+            case 0x3E: istore_3(current_frame); break;
+
+            case 0x4B: astore_0(current_frame); break;
+            case 0x4C: astore_1(current_frame); break;
+            case 0x4D: astore_2(current_frame); break;
+            case 0x4E: astore_3(current_frame); break;
+
+            // INSTRUÇÕES DE MANIPULAÇÃO DA PILHA
+            case 0x57: pop_inst(current_frame); break; 
+            case 0x59: dup(current_frame); break;
+            case 0x5F: swap(current_frame); break;
+
             // INSTRUÇÕES MATEMÁTICAS
             case 0x60: iadd(current_frame); break;
             case 0x64: isub(current_frame); break;
@@ -110,7 +166,7 @@ void execute_engine(JVMStack *stack, ClassFile *cf)  {
 
             // INSTRUÇÕES DE OBJETOS
             case 0xBB: new(current_frame); break;  
-            case 0xB4: getfield(current_frame); break;  
+            case 0xB4: getfield(current_frame); break; 
             case 0xB5: putfield(current_frame); break; 
             
             // ── INVOKESTATIC
@@ -201,6 +257,39 @@ void execute_engine(JVMStack *stack, ClassFile *cf)  {
             case 0xAF: frame_pop_method(stack, RETURN_DOUBLE); break; // dreturn (double)
             case 0xB0: frame_pop_method(stack, RETURN_REF);    break; // areturn (objeto/array)
             
+            // INSTRUÇÕES DE DESVIO
+            case 0xA7: goto_inst(current_frame); break;
+
+            case 0x99: ifeq(current_frame); break;
+            case 0x9A: ifne(current_frame); break;
+            case 0x9B: iflt(current_frame); break;
+            case 0x9C: ifge(current_frame); break;
+            case 0x9D: ifgt(current_frame); break;
+            case 0x9E: ifle(current_frame); break;
+
+            case 0x9F: if_icmpeq(current_frame); break;
+            case 0xA0: if_icmpne(current_frame); break;
+            case 0xA1: if_icmplt(current_frame); break;
+            case 0xA2: if_icmpge(current_frame); break;
+            case 0xA3: if_icmpgt(current_frame); break;
+            case 0xA4: if_icmple(current_frame); break;
+
+            //  INSTRUÇÕES DE CONVERSÃO DE TIPOS
+            case 0x86: i2f(current_frame); break;
+            case 0x87: i2d(current_frame); break;
+            case 0x8B: f2i(current_frame); break;
+            case 0x8E: d2i(current_frame); break;
+            case 0x91: i2b(current_frame); break;
+            case 0x92: i2c(current_frame); break;
+            case 0x93: i2s(current_frame); break;
+
+            // INSTRUÇÕES RELATIVAS A ATRIBUTOS ESTÁTICOS
+            case 0xB2: getstatic(current_frame); break;
+            case 0xB3: putstatic(current_frame); break;
+
+            // INSTRUÇÃO DE INVOCAÇÃO DE MÉTODOS
+            case 0xB6: invokevirtual(current_frame); break;
+
             // DEFAULT (Instrução não mapeada)
             default:
                 fprintf(stderr, "Opcode desconhecido: 0x%02X na posicao %d\n", opcode, current_frame->pc - 1);

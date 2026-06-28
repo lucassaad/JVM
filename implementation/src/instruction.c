@@ -547,6 +547,134 @@ void getfield(Frame *frame) {
     }
 }
 
+// INSTRUÇÕES DE RESOLUÇÃO DE CONSTANTES DA CONSTANT POOL
+ 
+// Função auxiliar para executar a lógica de ldc/ldc_w dado um índice já resolvido (1 ou 2 bytes).
+// Busca a entrada na referência à CP, presente no frame, 
+// identifica o tipo pela tag e empilha o valor correto.
+static void ldc_resolve(Frame *frame, uint16_t index) {
+    // Obtém a entrada genérica da Constant Pool pelo índice
+    cp_info *entry = frame->constant_pool[index];
+ 
+    // A tag (primeiro byte - 8 bits - de toda entrada da CP) identifica o tipo da constante
+    uint8_t tag = entry->tag;
+ 
+    switch (tag) {
+ 
+        case CONSTANT_Integer: {
+            // CONSTANT_Integer_info armazena os 4 bytes do int em 'bytes'
+            CONSTANT_Integer_info *info = (CONSTANT_Integer_info *) entry->info;
+ 
+            // Os bytes estão em big-endian (convertido no momento da leitura)
+            // A função frame_push_int recebe um inteiro com sinal, então usamos memcpy para 
+            // transformar o atributo "bytes" (unsigned - uint32_t) em signed (int32_t)
+            int32_t value;
+            memcpy(&value, &info->bytes, sizeof(int32_t));
+            frame_push_int(frame, value);
+            break;
+        }
+ 
+        case CONSTANT_Float: {
+            // CONSTANT_Float_info armazena os 4 bytes do float em 'bytes'
+            CONSTANT_Float_info *info = (CONSTANT_Float_info *) entry->info;
+ 
+            // A função frame_push_float recebe um float (com sinal), então usamos memcpy para 
+            // transformar o atributo "bytes" (unsigned - uint32_t) em float (signed)
+            float value;
+            memcpy(&value, &info->bytes, sizeof(float));
+            frame_push_float(frame, value);
+            break;
+        }
+ 
+        case CONSTANT_String: {
+            // CONSTANT_String_info tem um string_index que aponta para um CONSTANT_Utf8_info
+            // Como não implementamos heap, empilhamos o próprio índice do Utf8 como referência
+            CONSTANT_String_info *str_info = (CONSTANT_String_info *) entry->info;
+            frame_push_ref(frame, str_info->string_index);
+            break;
+        }
+ 
+        default:
+            // Se não é nenhum dos casos acima, dá erro
+            fprintf(stderr, "ldc: tipo de constante nao suportado (tag=%u, index=%u)\n", tag, index);
+            exit(1);
+    }
+}
+ 
+// Opcode: 0x12 — ldc: índice de 1 byte (acessa entradas 1-255 da CP)
+void ldc(Frame *frame) {
+    // Lê o índice (1 byte sem sinal) e incremente o PC
+    uint8_t index = frame->code[frame->pc++];
+
+    // Chama a função auxiliar para fazer a resolução
+    ldc_resolve(frame, (uint16_t) index);
+}
+ 
+// Opcode: 0x13 — ldc_w: índice de 2 bytes (acessa qualquer entrada da CP)
+// Necessário quando o índice não cabe em 1 byte (> 255)
+void ldc_w(Frame *frame) {
+    // Lê os 2 bytes do índice em big-endian e incrementa o PC
+    uint8_t byte1 = frame->code[frame->pc++];
+    uint8_t byte2 = frame->code[frame->pc++];
+
+    // Junta os dois bytes para formar o índice a ser passado como argumento para
+    // a função de resolução de constantes
+    uint16_t index = (uint16_t)((byte1 << 8) | byte2);
+    ldc_resolve(frame, index);
+}
+ 
+// Opcode: 0x14 — ldc2_w: carrega long ou double (categoria 2, 2 slots) com índice de 2 bytes
+void ldc2_w(Frame *frame) {
+    // Lê os 2 bytes do índice em big-endian e avança o PC
+    uint8_t byte1 = frame->code[frame->pc++];
+    uint8_t byte2 = frame->code[frame->pc++];
+
+    // Junta os dois bytes para formar o índice a ser passado como argumento para
+    // a função de resolução de constantes
+    uint16_t index = (uint16_t)((byte1 << 8) | byte2);
+ 
+    // Como funciona tanto para Long quanto para Double, devemos descobrir o tipo exato por meio da tag
+    cp_info *entry = frame->constant_pool[index];
+    uint8_t tag = entry->tag;
+ 
+    switch (tag) {
+ 
+        case CONSTANT_Long: {
+            // CONSTANT_Long_info divide os 8 bytes em high_bytes (32 bits) e low_bytes (32 bits)
+            CONSTANT_Long_info *info = (CONSTANT_Long_info *) entry->info;
+ 
+            // Junta os dois bytes para formar o int64_t combinando as duas metades em big-endian
+            uint64_t raw = ((uint64_t) info->high_bytes << 32) | (uint64_t) info->low_bytes;
+
+            // Usa o memcpy para transformar o unsigned em signed, a fim de evitar
+            // erros de interpretação e casting
+            int64_t value;
+            memcpy(&value, &raw, sizeof(int64_t));
+            frame_push_long(frame, value);
+            break;
+        }
+ 
+        case CONSTANT_Double: {
+            // CONSTANT_Double_info divide os 8 bytes em high_bytes (32 bits) e low_bytes (32 bits)
+            CONSTANT_Double_info *info = (CONSTANT_Double_info *) entry->info;
+            
+            // Junta os dois bytes para formar o int64_t combinando as duas metades em big-endian
+            uint64_t raw = ((uint64_t) info->high_bytes << 32) | (uint64_t) info->low_bytes;
+            
+            // Usa o memcpy para transformar o unsigned em signed, a fim de evitar
+            // erros de interpretação e casting
+            double value;
+            memcpy(&value, &raw, sizeof(double));
+            frame_push_double(frame, value);
+            break;
+        }
+ 
+        default:
+            fprintf(stderr, "ldc2_w: tipo de constante nao suportado (tag=%u, index=%u)\n", tag, index);
+            exit(1);
+    }
+}
+
 // INSTRUÇÕES ENVOLVENDO CONSTANTES 
 // Opcode: 0x01
 void aconst_null(Frame *frame) {
@@ -764,4 +892,238 @@ void swap(Frame *frame) {
     uint32_t value2 = frame_pop_raw(frame);
     frame_push_raw(frame, value1);
     frame_push_raw(frame, value2);
+}
+
+// Opcode: 0xA7
+void goto_inst(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0x99
+void ifeq(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    int32_t value = frame_pop_int(frame);
+    if (value == 0) frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0x9A
+void ifne(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    int32_t value = frame_pop_int(frame);
+    if (value != 0) frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0x9B
+void iflt(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    int32_t value = frame_pop_int(frame);
+    if (value < 0) frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0x9C
+void ifge(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    int32_t value = frame_pop_int(frame);
+    if (value >= 0) frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0x9D
+void ifgt(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    int32_t value = frame_pop_int(frame);
+    if (value > 0) frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0x9E
+void ifle(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    int32_t value = frame_pop_int(frame);
+    if (value <= 0) frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0x9F
+void if_icmpeq(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    // retira da pilha de operandos 
+    int32_t value2 = frame_pop_int(frame);
+    int32_t value1 = frame_pop_int(frame);
+    if (value1 == value2) frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0xA0
+void if_icmpne(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    // retira da pilha de operandos 
+    int32_t value2 = frame_pop_int(frame);
+    int32_t value1 = frame_pop_int(frame);
+    if (value1 != value2) frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0xA1
+void if_icmplt(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    int32_t value2 = frame_pop_int(frame);
+    int32_t value1 = frame_pop_int(frame);
+    if (value1 < value2) frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0xA2
+void if_icmpge(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    int32_t value2 = frame_pop_int(frame);
+    int32_t value1 = frame_pop_int(frame);
+    if (value1 >= value2) frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0xA3
+void if_icmpgt(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    int32_t value2 = frame_pop_int(frame);
+    int32_t value1 = frame_pop_int(frame);
+    if (value1 > value2) frame->pc = opcode_pc + (int32_t)offset;
+}
+
+// Opcode: 0xA4
+void if_icmple(Frame *frame) {
+    uint32_t opcode_pc = frame->pc - 1;
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    frame->pc += 2;
+    int32_t value2 = frame_pop_int(frame);
+    int32_t value1 = frame_pop_int(frame);
+    if (value1 <= value2) frame->pc = opcode_pc + (int32_t)offset;
+}
+
+//  INSTRUÇÕES DE CONVERSÃO DE TIPOS
+// Opcode: 0x86
+void i2f(Frame *frame) {
+    int32_t val = frame_pop_int(frame);
+    frame_push_float(frame, (float)val);
+}
+// Opcode: 0x87
+void i2d(Frame *frame) {
+    int32_t val = frame_pop_int(frame);
+    frame_push_double(frame, (double)val);
+}
+// Opcode: 0x8B
+void f2i(Frame *frame) {
+    float val = frame_pop_float(frame);
+    frame_push_int(frame, (int32_t)val);
+}
+// Opcode: 0x8E
+void d2i(Frame *frame) {
+    double val = frame_pop_double(frame);
+    frame_push_int(frame, (int32_t)val);
+}
+// Opcode: 0x91
+void i2b(Frame *frame) {
+    int32_t val = frame_pop_int(frame);
+    frame_push_int(frame, (int32_t)(int8_t)val); 
+}
+// Opcode: 0x92
+void i2c(Frame *frame) {
+    int32_t val = frame_pop_int(frame);
+    frame_push_int(frame, (int32_t)(uint16_t)val); 
+}
+// Opcode: 0x93
+void i2s(Frame *frame) {
+    int32_t val = frame_pop_int(frame);
+    frame_push_int(frame, (int32_t)(int16_t)val); 
+}
+
+// INSTRUÇÕES RELATIVAS A ATRIBUTOS ESTÁTICOS 
+// Opcode: 0xB2
+void getstatic(Frame *frame) {
+    uint16_t indexbyte = (frame->code[frame->pc] << 8) | frame->code[frame->pc + 1];
+    frame->pc += 2;
+    (void)indexbyte;
+    
+    frame_push_ref(frame, 0);
+}
+
+// Opcode: 0xB3
+void putstatic(Frame *frame) {
+    uint16_t indexbyte = (frame->code[frame->pc] << 8) | frame->code[frame->pc + 1];
+    frame->pc += 2;
+    (void)indexbyte;
+    
+    frame_pop_raw(frame);
+}
+
+// INSTRUÇÃO DE INVOCAÇÃO DE MÉTODOS
+// Opcode: 0xB6
+void invokevirtual(Frame *frame) {
+    uint16_t indexbyte = (frame->code[frame->pc] << 8) | frame->code[frame->pc + 1];
+    frame->pc += 2;
+    
+    // Acessa o Methodref
+    cp_info *methodref_cp = frame->constant_pool[indexbyte];
+    CONSTANT_Methodref_info *methodref = (CONSTANT_Methodref_info *)methodref_cp->info;
+    
+    // Resolve o Nome da Classe alvo
+    cp_info *class_cp = frame->constant_pool[methodref->class_index];
+    CONSTANT_Class_info *class_info = (CONSTANT_Class_info *)class_cp->info;
+    CONSTANT_Utf8_info *class_name = (CONSTANT_Utf8_info *)frame->constant_pool[class_info->name_index]->info;
+    
+    // Resolve o NameAndType (Nome do método e Descritor)
+    cp_info *nt_cp = frame->constant_pool[methodref->name_and_type_index];
+    CONSTANT_NameAndType_info *nt = (CONSTANT_NameAndType_info *)nt_cp->info;
+    CONSTANT_Utf8_info *method_name = (CONSTANT_Utf8_info *)frame->constant_pool[nt->name_index]->info;
+    CONSTANT_Utf8_info *method_desc = (CONSTANT_Utf8_info *)frame->constant_pool[nt->descriptor_index]->info;
+    
+    if (strncmp((char *)class_name->bytes, "java/io/PrintStream", class_name->length) == 0 &&
+       (strncmp((char *)method_name->bytes, "println", method_name->length) == 0 ||
+        strncmp((char *)method_name->bytes, "print", method_name->length) == 0)) {
+
+        if (strncmp((char *)method_desc->bytes, "(I)V", 4) == 0) {
+            int32_t val = frame_pop_int(frame);
+            printf("%d", val);
+        } 
+        else if (strncmp((char *)method_desc->bytes, "(F)V", 4) == 0) {
+            float val = frame_pop_float(frame);
+            printf("%f", val);
+        }
+        else if (strncmp((char *)method_desc->bytes, "(D)V", 4) == 0) {
+            double val = frame_pop_double(frame);
+            printf("%lf", val);
+        }
+        else if (strncmp((char *)method_desc->bytes, "(C)V", 4) == 0) {
+            int32_t val = frame_pop_int(frame);
+            printf("%c", (char)val);
+        }
+        
+        if (strncmp((char *)method_name->bytes, "println", 7) == 0) {
+            printf("\n");
+        }
+        
+        frame_pop_ref(frame);
+        
+    } else {
+        fprintf(stderr, "UnsupportedOperationException: invokevirtual nao mockado para outro objeto.\n");
+        exit(1);
+    }
 }
