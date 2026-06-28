@@ -157,7 +157,7 @@ int main(int argc, char *argv[]) {
         }
 
         // Inicia o Fetch-Decode-Execute
-        execute_engine(&stack);
+        execute_engine(&stack, cf);
 
 
     }
