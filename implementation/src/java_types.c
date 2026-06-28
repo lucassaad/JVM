@@ -1,3 +1,31 @@
+/**
+ * @file java_types.c
+ * @brief Alocação de objetos e arrays Java na heap nativa.
+ *
+ * Implementa create_new_array(), count_object_fields() e create_new_object().
+ *
+ * Convenções de alocação:
+ * - O cabeçalho (struct Array ou struct Object) é alocado com malloc.
+ * - O vetor de elementos/fields é alocado com calloc, garantindo que todos os
+ *   slots comecem zerados (equivalente ao zero-init da JVM spec).
+ * - Comprimento zero resulta em elements/fields == NULL (sem calloc).
+ *
+ * Layout de tipos de 64 bits em arrays:
+ * - T_LONG e T_DOUBLE dobram a capacidade alocada: alloc_length = length * 2,
+ *   mas arr->length guarda o comprimento lógico original. Cada elemento ocupa
+ *   2 slots de int32_t consecutivos (big-endian, slot alto primeiro).
+ *
+ * Contagem de slots de objeto (count_object_fields):
+ * - Varre apenas fields sem a flag ACC_STATIC (0x0008).
+ * - Resolve o descritor via CP[descriptor_index] → CONSTANT_Utf8_info e lê o
+ *   primeiro caractere: 'J' (long) e 'D' (double) contribuem com 2 slots;
+ *   todos os outros tipos contribuem com 1 slot.
+ * - O resultado é usado por create_new_object() para dimensionar obj->fields.
+ *
+ * Erros de alocação e pré-condições inválidas emitem mensagens para stderr
+ * espelhando exceções Java (NegativeArraySizeException, OutOfMemoryError).
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include "java_types.h"

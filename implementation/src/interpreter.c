@@ -1,3 +1,28 @@
+/**
+ * @file interpreter.c
+ * @brief Motor de execução fetch-decode-execute da JVM.
+ *
+ * Implementa execute_engine(), o loop principal da JVM. A cada iteração:
+ * 1. Fetch: lê o opcode em current_frame->code[pc] e incrementa pc em 1.
+ * 2. Decode: o switch(opcode) identifica a instrução.
+ * 3. Execute: despacha para a função de instrução correspondente; a função
+ *    lê seus próprios operandos inline, incrementando pc adicionalmente.
+ *
+ * O loop termina quando a JVMStack fica vazia (todos os frames retornaram).
+ * frame_pop_method() é chamado diretamente pelo switch para opcodes de retorno
+ * (return, ireturn, lreturn, freturn, dreturn, areturn).
+ *
+ * Opcode não mapeado causa fprintf(stderr) + exit(1) imediato.
+ *
+ * Auditoria de execução:
+ * - exec_log é um FILE* global aberto em modo append em "execucao_jvm.txt".
+ * - A cada iteração registra: PC, opcode hex, SP e número de frames ativos.
+ * - O arquivo é fechado e exec_log zerado ao final da execução.
+ * - O parâmetro cf recebido por execute_engine() não é usado diretamente pelo
+ *   loop; é repassado apenas para invokespecial e invokestatic que precisam
+ *   acessar o constant pool da classe inicial.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

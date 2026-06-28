@@ -1,3 +1,22 @@
+/**
+ * @file constant_pool.c
+ * @brief Implementação da leitura e validação do Constant Pool de um arquivo `.class`.
+ *
+ * Implementa duas funções principais:
+ *
+ * - constant_pool_reader(): dispatcher que, dado o valor da tag, aloca a struct
+ *   correspondente ao tipo de entrada, lê os campos do arquivo binário e converte
+ *   de big-endian para little-endian via byteswap. Para CONSTANT_Utf8, a alocação
+ *   é feita com tamanho variável (struct + length + 1) e o array de bytes é
+ *   terminado em '\0' para compatibilidade com funções C de string.
+ *
+ * - check_constant_pool_references(): percorre todas as entradas do pool e valida
+ *   os índices cruzados de cada tipo conforme a JVMS: limites do array, tipo esperado
+ *   da entrada referenciada e, para CONSTANT_MethodHandle, as restrições de
+ *   reference_kind (1–9) com validação sensível à versão do ClassFile (major < 52
+ *   exige Methodref; >= 52 aceita também InterfaceMethodref para kinds 6 e 7).
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

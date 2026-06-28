@@ -1,3 +1,37 @@
+/**
+ * @file main.c
+ * @brief Ponto de entrada da JVM: parse de argumentos e despacho para os modos
+ *        Leitor/Exibidor (-l) e Interpretador (-i).
+ *
+ * Uso: ./jvm [-l | --leitor | -i | --interpretador] <arquivo.class>
+ *
+ * Fluxo comum a ambos os modos:
+ * 1. Abre o arquivo .class em modo binário.
+ * 2. Chama read_classfile() para desserializar a estrutura completa.
+ * 3. Chama check_constant_pool_references() para validação cruzada do CP.
+ * 4. Fecha o arquivo e inicializa a Method Area, registrando a classe lida.
+ *
+ * Modo Leitor (-l):
+ * - Chama todas as funções print_* duas vezes: uma para stdout e outra para
+ *   "saida_exibidor.txt" (aberto em modo "w", sobrescreve a cada execução).
+ * - Seções exibidas: general information, constant pool, interfaces, fields,
+ *   methods e attributes (com disassembly de Code via view_instructions()).
+ *
+ * Modo Interpretador (-i):
+ * - Cria "execucao_jvm.txt" em modo "w" e grava metadados do entrypoint
+ *   (classe, max_stack, max_locals, code_length), depois fecha o arquivo.
+ * - execute_engine() reabre o mesmo arquivo em modo append para registrar
+ *   o rastro completo da execução ciclo a ciclo.
+ * - Localiza o método "main" com flags ACC_PUBLIC (0x0001) | ACC_STATIC (0x0008)
+ *   via method_area_find_method(); falha encerra com exit code 1.
+ * - Cria o Frame inicial com frame_create(), inicializa a JVMStack com limite
+ *   de 1 MB e empilha o frame antes de chamar execute_engine().
+ *
+ * Ao final, apenas cf->constant_pool e cf são liberados; os recursos internos
+ * do ClassFile (fields, methods, atributos) não são liberados aqui — a JVM é
+ * finalizada logo em seguida pelo sistema operacional.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

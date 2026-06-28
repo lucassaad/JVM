@@ -1,3 +1,41 @@
+/**
+ * @file reader.c
+ * @brief Leitura e validação do formato binário `.class` (big-endian).
+ *
+ * read_classfile() percorre o arquivo sequencialmente na ordem exata da JVM spec,
+ * convertendo cada campo de big-endian para little-endian via byteswap antes de
+ * armazenar na struct. O fluxo de leitura é:
+ *   magic → minor_version → major_version → constant_pool_count → constant_pool[]
+ *   → access_flags → this_class → super_class → interfaces[] → fields[] →
+ *   methods[] → attributes[]
+ *
+ * Cada seção é validada imediatamente após a leitura (validate_*). Qualquer
+ * erro retorna 1; sucesso retorna 0.
+ *
+ * Tratamento especial do constant pool:
+ * - O índice 0 não é lido (reservado pela spec); o loop começa em i=1.
+ * - Entradas CONSTANT_Long e CONSTANT_Double ocupam 2 slots: após registrar
+ *   cp[i], o índice seguinte (i+1) é setado como NULL e i é incrementado
+ *   para pular o slot fantasma.
+ * - Cada tag é lida separadamente (1 byte) e passada para constant_pool_reader()
+ *   que aloca e preenche o payload específico.
+ *
+ * read_attributes_array():
+ * - Lê attribute_name_index e attribute_length, resolve o nome via CP (Utf8),
+ *   cria uma cópia temporária com '\0' para passar como string C a
+ *   read_specific_attribute_info(), e libera a cópia logo após.
+ * - Retorna NULL se count == 0.
+ *
+ * Funções validate_*:
+ * - validate_this_class: índice deve ser > 0, < cp_count e apontar para CONSTANT_Class.
+ * - validate_super_class: 0 é válido apenas para java/lang/Object (sem ACC_INTERFACE);
+ *   se não zero, deve apontar para CONSTANT_Class.
+ * - validate_interfaces: cada índice deve apontar para CONSTANT_Class.
+ * - validate_fields / validate_methods: name_index e descriptor_index devem
+ *   apontar para CONSTANT_Utf8 dentro dos limites do CP.
+ * - validate_attributes: attribute_name_index deve apontar para CONSTANT_Utf8.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

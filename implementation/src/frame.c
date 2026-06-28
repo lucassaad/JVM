@@ -1,3 +1,25 @@
+/**
+ * @file frame.c
+ * @brief Implementação do Frame de execução da JVM.
+ *
+ * Implementa a criação, destruição, acesso a variáveis locais, manipulação
+ * da pilha de operandos e o ciclo de vida de chamada/retorno de métodos.
+ *
+ * Convenções de implementação:
+ * - Todos os valores são armazenados como slots de 32 bits (uint32_t).
+ *   memcpy é usado em vez de cast para copiar bits sem reinterpretação de sinal
+ *   ou tipo (evita undefined behavior em conversões de ponteiro).
+ * - Valores de 64 bits (long, double) ocupam 2 slots consecutivos em big-endian:
+ *   slot[index] = high 32 bits, slot[index+1] = low 32 bits.
+ * - frame_push_raw / frame_pop_raw são as primitivas base; todas as outras funções
+ *   de push/pop delegam a elas após converter o tipo para/de uint32_t via memcpy.
+ * - frame_push_method transfere os argumentos diretamente do array operand_stack do
+ *   chamador para o array local_vars do novo frame (sem pop/push individuais),
+ *   ajustando o SP do chamador ao final.
+ * - frame_pop_method lê o valor de retorno antes de destruir o frame corrente,
+ *   depois o empilha no frame restaurado (chamador).
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

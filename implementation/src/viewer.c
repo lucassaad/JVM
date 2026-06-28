@@ -1,3 +1,39 @@
+/**
+ * @file viewer.c
+ * @brief Exibição legível (modo -l) de todas as seções de um arquivo `.class`.
+ *
+ * Todas as funções print_* recebem um FILE *out que pode ser stdout ou um arquivo;
+ * isso permite gerar simultaneamente a saída no terminal e em arquivo de texto.
+ *
+ * Funções auxiliares de resolução (retornam strings estáticas — não thread-safe):
+ * - get_java_version_string(): mapeia major_version (45–70) para "Java 1.1"–"Java 26".
+ * - get_class_access_flags_string(): constrói string de flags da classe em buffer
+ *   estático de 128 bytes, removendo o espaço final.
+ * - get_class_name_string(): navega CP[class_index] → CONSTANT_Class → CONSTANT_Utf8
+ *   e copia até 511 bytes para um buffer estático; retorna "Nenhum" para índice 0.
+ *
+ * print_constant_pool():
+ * - Itera de i=1; entradas NULL (slot fantasma de Long/Double) são puladas com continue.
+ * - Para Long e Double reconstrói o valor de 64 bits como (high_bytes << 32) | low_bytes
+ *   e usa type-punning via ponteiro para imprimir o valor numérico correto. Incrementa
+ *   i para pular o slot seguinte e emite a linha "(large numeric continued)".
+ * - Entradas Methodref, Fieldref e InterfaceMethodref resolvem a cadeia completa
+ *   Class → Utf8 e NameAndType → Utf8 (nome e descritor) inline para exibição.
+ *
+ * print_specific_attribute_info():
+ * - Dispatcher que identifica o atributo pelo nome (comparação de comprimento + strncmp).
+ * - Para o atributo Code: imprime max_stack, max_locals, code_length, dump hexadecimal
+ *   completo, chama view_instructions() para disassembly, tabela de exceções (catch_type
+ *   0 exibido como "<Qualquer>") e sub-atributos recursivamente (a própria função é
+ *   chamada para cada sub_attr do Code).
+ * - Atributos desconhecidos: dump hexadecimal limitado a 30 bytes com aviso de truncagem.
+ *
+ * print_attributes():
+ * - Agrega todos os atributos do ClassFile em uma única listagem sequencial com índice
+ *   global (global_attr_idx), percorrendo: atributos da classe, atributos de cada field
+ *   e atributos de cada método. O total exibido no cabeçalho inclui todos os três grupos.
+ */
+
 #include <stdio.h>
 #include "viewer.h"
 #include "class_file.h"
