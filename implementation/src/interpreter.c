@@ -7,39 +7,6 @@
 #include "constant_pool.h"
 #include "attributes.h"
 
-static method_info *find_method_by_name(ClassFile *cf,
-                                         const char *name,
-                                         const char *desc) {
-    for (int i = 0; i < cf->methods_count; i++) {
-        method_info *m = &cf->methods[i];
-
-        CONSTANT_Utf8_info *mname =
-            (CONSTANT_Utf8_info *)cf->constant_pool[m->name_index]->info;
-        CONSTANT_Utf8_info *mdesc =
-            (CONSTANT_Utf8_info *)cf->constant_pool[m->descriptor_index]->info;
-
-        if ((int)mname->length != (int)strlen(name)) continue;
-        if (strncmp((char *)mname->bytes, name, mname->length) != 0) continue;
-        if ((int)mdesc->length != (int)strlen(desc)) continue;
-        if (strncmp((char *)mdesc->bytes, desc, mdesc->length) != 0) continue;
-
-        return m;
-    }
-    return NULL;
-}
-
-static Code_attribute *get_code_attribute(ClassFile *cf, method_info *method) {
-    for (int i = 0; i < method->attributes_count; i++) {
-        attribute_info *attr = &method->attributes[i];
-        CONSTANT_Utf8_info *utf8 =
-            (CONSTANT_Utf8_info *)cf->constant_pool[attr->attribute_name_index]->info;
-
-        if (utf8->length == 4 && strncmp((char *)utf8->bytes, "Code", 4) == 0)
-            return (Code_attribute *)attr->info;
-    }
-    return NULL;
-}
-
 void execute_engine(JVMStack *stack, ClassFile *cf)  {
     // print para debug
     printf("Entrou no execute_engine\n");
@@ -168,87 +135,6 @@ void execute_engine(JVMStack *stack, ClassFile *cf)  {
             case 0xBB: new(current_frame); break;  
             case 0xB4: getfield(current_frame); break; 
             case 0xB5: putfield(current_frame); break; 
-            
-            // ── INVOKESTATIC
-            case 0xB8: {
-                // Lê o índice de 2 bytes que vem depois do opcode no bytecode
-                uint16_t cp_idx = ((uint16_t)current_frame->code[current_frame->pc] << 8)
-                                |  (uint16_t)current_frame->code[current_frame->pc + 1];
-                current_frame->pc += 2;
-
-                // Vai na Constant Pool e pega o Methodref
-                cp_info *cp_entry = current_frame->constant_pool[cp_idx];
-                CONSTANT_Methodref_info *mref = (CONSTANT_Methodref_info *)cp_entry->info;
-
-                // Do Methodref pega o NameAndType, que tem o nome e o descriptor do método
-                CONSTANT_NameAndType_info *nt =
-                    (CONSTANT_NameAndType_info *)
-                    current_frame->constant_pool[mref->name_and_type_index]->info;
-
-                CONSTANT_Utf8_info *name_utf8 =
-                    (CONSTANT_Utf8_info *)current_frame->constant_pool[nt->name_index]->info;
-                CONSTANT_Utf8_info *desc_utf8 =
-                    (CONSTANT_Utf8_info *)current_frame->constant_pool[nt->descriptor_index]->info;
-
-                // Copia para strings com '\0' no final (C precisa disso para comparar)
-                char method_name[name_utf8->length + 1];
-                memcpy(method_name, name_utf8->bytes, name_utf8->length);
-                method_name[name_utf8->length] = '\0';
-
-                char method_desc[desc_utf8->length + 1];
-                memcpy(method_desc, desc_utf8->bytes, desc_utf8->length);
-                method_desc[desc_utf8->length] = '\0';
-
-                // Localiza o método na ClassFile pelo nome + descriptor
-                method_info *target = find_method_by_name(cf, method_name, method_desc);
-                if (target == NULL) {
-                    fprintf(stderr, "[invokestatic] metodo '%s%s' nao encontrado\n",
-                            method_name, method_desc);
-                    exit(1);
-                }
-
-                // Pega o bytecode (Code attribute) desse método
-                Code_attribute *target_code = get_code_attribute(cf, target);
-                if (target_code == NULL) {
-                    fprintf(stderr, "[invokestatic] '%s' nao tem Code attribute\n", method_name);
-                    exit(1);
-                }
-
-                // Conta quantos slots de argumento o método espera receber
-                // (0 = método estático, sem 'this')
-                uint16_t num_arg_slots =
-                    descriptor_count_arg_slots(method_desc, /*is_instance_method=*/0);
-
-                // Cria o novo Frame e empilha na JVMStack.
-                // frame_push_method já faz tudo:
-                //   - aloca o Frame com max_locals/max_stack do Code attribute
-                //   - tira os argumentos da pilha do frame atual
-                //   - coloca eles nas variáveis locais do novo frame (local[0], local[1], ...)
-                //   - faz stack->current_frame apontar para o novo frame
-                JVMStackStatus status = frame_push_method(
-                    stack,
-                    target_code,
-                    current_frame->constant_pool,
-                    current_frame->constant_pool_count,
-                    num_arg_slots
-                );
-
-                if (status != JVM_STACK_OK) {
-                    fprintf(stderr, "[invokestatic] frame_push_method falhou (status=%d)\n", status);
-                    exit(1);
-                }
-
-                // Na próxima iteração do while, current_frame vai ser o novo frame
-                // e a execução começa do PC=0 do método chamado.
-                break;
-            }
-
-            // ── RETORNOS ─────────────────────────────────────────────────────────────────
-            // frame_pop_method faz tudo:
-            //   - lê o valor de retorno da pilha do frame atual (se houver)
-            //   - destrói o frame atual
-            //   - restaura o frame chamador como current_frame
-            //   - empurra o valor de retorno na pilha do frame chamador
 
             case 0xB1: frame_pop_method(stack, RETURN_VOID);   break; // return  (void)
             case 0xAC: frame_pop_method(stack, RETURN_INT);    break; // ireturn (int)
@@ -289,6 +175,9 @@ void execute_engine(JVMStack *stack, ClassFile *cf)  {
 
             // INSTRUÇÃO DE INVOCAÇÃO DE MÉTODOS
             case 0xB6: invokevirtual(current_frame); break;
+            case 0xB7: invokespecial(current_frame, stack, cf); break;
+            case 0xB8: invokestatic(current_frame, stack, cf); break;
+            case 0xB9: invokeinterface(current_frame, stack); break;
 
             // DEFAULT (Instrução não mapeada)
             default:
@@ -296,7 +185,9 @@ void execute_engine(JVMStack *stack, ClassFile *cf)  {
                 exit(1);
         }
         
-        // Sincroniza o PC global da Stack com o PC do frame atual
-        pc_register = current_frame->pc;
-    }
-}
+        // Sincroniza o PC global da Stack com o PC do frame atualizado
+        if (stack->current_frame != NULL) {
+            pc_register = stack->current_frame->pc;
+        }
+    } 
+} 

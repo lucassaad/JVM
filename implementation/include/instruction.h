@@ -156,7 +156,10 @@ void i2s(Frame *frame);
 void getstatic(Frame *frame);
 void putstatic(Frame *frame);
 
-// Instrução de Invocação de Métodos 
+// Instrução de Invocação 
 void invokevirtual(Frame *frame);
+void invokespecial(Frame *frame, JVMStack *stack, ClassFile *cf);
+void invokestatic(Frame *frame, JVMStack *stack, ClassFile *cf);
+void invokeinterface(Frame *frame, JVMStack *stack);
 
 #endif

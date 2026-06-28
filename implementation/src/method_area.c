@@ -3,6 +3,7 @@
 #include <string.h>        
 #include "method_area.h"
 #include "constant_pool.h"  
+#include "reader.h"
 
 // inicia a Method Area global
 MethodArea method_area = {
@@ -70,7 +71,7 @@ ClassFile *method_area_load(const char *class_name)
 {
     char filename[512];
 
-    snprintf(filename, sizeof(filename), "%s.class", class_name);
+    snprintf(filename, sizeof(filename), "exemplos/%s.class", class_name);
 
     FILE *fp = fopen(filename, "rb");
 

@@ -1127,3 +1127,195 @@ void invokevirtual(Frame *frame) {
         exit(1);
     }
 }
+
+// Opcode: 0xB7
+void invokespecial(Frame *current_frame, JVMStack *stack, ClassFile *cf) {
+    (void)cf;
+    uint16_t cp_idx = ((uint16_t)current_frame->code[current_frame->pc] << 8)
+                    |  (uint16_t)current_frame->code[current_frame->pc + 1];
+    current_frame->pc += 2;
+
+    cp_info *cp_entry = current_frame->constant_pool[cp_idx];
+    CONSTANT_Methodref_info *mref = (CONSTANT_Methodref_info *)cp_entry->info;
+
+    // --- 1. DESCOBRE O NOME DA CLASSE ALVO ---
+    CONSTANT_Class_info *class_info = (CONSTANT_Class_info *)current_frame->constant_pool[mref->class_index]->info;
+    CONSTANT_Utf8_info *class_name_utf8 = (CONSTANT_Utf8_info *)current_frame->constant_pool[class_info->name_index]->info;
+
+    char *target_class_name = malloc(class_name_utf8->length + 1);
+    memcpy(target_class_name, class_name_utf8->bytes, class_name_utf8->length);
+    target_class_name[class_name_utf8->length] = '\0';
+
+    // --- 2. DESCOBRE O NOME E DESCRITOR DO MÉTODO ---
+    CONSTANT_NameAndType_info *nt = (CONSTANT_NameAndType_info *)current_frame->constant_pool[mref->name_and_type_index]->info;
+    CONSTANT_Utf8_info *name_utf8 = (CONSTANT_Utf8_info *)current_frame->constant_pool[nt->name_index]->info;
+    CONSTANT_Utf8_info *desc_utf8 = (CONSTANT_Utf8_info *)current_frame->constant_pool[nt->descriptor_index]->info;
+
+    char *method_name = malloc(name_utf8->length + 1);
+    memcpy(method_name, name_utf8->bytes, name_utf8->length);
+    method_name[name_utf8->length] = '\0';
+
+    char *method_desc = malloc(desc_utf8->length + 1);
+    memcpy(method_desc, desc_utf8->bytes, desc_utf8->length);
+    method_desc[desc_utf8->length] = '\0';
+
+    // --- 3. HACK ACADÊMICO PARA JAVA.LANG.OBJECT ---
+    if (strcmp(target_class_name, "java/lang/Object") == 0 && strcmp(method_name, "<init>") == 0) {
+        // O construtor padrão do Object consome a referência "this" da pilha
+        frame_pop_ref(current_frame);
+        free(target_class_name); free(method_name); free(method_desc);
+        return; // Sai sem criar frame, fingindo que rodou com sucesso
+    }
+
+    // --- 4. RESOLVE A CLASSE ALVO E BUSCA O MÉTODO NELA ---
+    ClassFile *target_class = method_area_resolve_class(current_frame->constant_pool, mref->class_index);
+
+    method_info *target = method_area_find_method(target_class, method_name, method_desc, 0);
+    if (target == NULL) {
+        fprintf(stderr, "[invokespecial] metodo '%s%s' nao encontrado em '%s'\n", method_name, method_desc, target_class_name);
+        exit(1);
+    }
+
+    Code_attribute *target_code = method_area_get_code(target_class, target);
+    if (target_code == NULL) {
+        fprintf(stderr, "[invokespecial] '%s' nao tem Code attribute\n", method_name);
+        exit(1);
+    }
+
+    uint16_t num_arg_slots = descriptor_count_arg_slots(method_desc, 1); // 1 = tem 'this'
+
+    // CRÍTICO: Passar a constant pool da classe alvo, não a da classe mãe
+    JVMStackStatus status = frame_push_method(
+        stack, target_code, target_class->constant_pool,
+        target_class->constant_pool_count, num_arg_slots
+    );
+
+    if (status != JVM_STACK_OK) {
+        fprintf(stderr, "[invokespecial] falhou (status=%d)\n", status);
+        exit(1);
+    }
+
+    free(target_class_name); free(method_name); free(method_desc);
+}
+
+// Opcode: 0xB8
+void invokestatic(Frame *current_frame, JVMStack *stack, ClassFile *cf) {
+    (void)cf;
+    uint16_t cp_idx = ((uint16_t)current_frame->code[current_frame->pc] << 8)
+                    |  (uint16_t)current_frame->code[current_frame->pc + 1];
+    current_frame->pc += 2;
+
+    cp_info *cp_entry = current_frame->constant_pool[cp_idx];
+    CONSTANT_Methodref_info *mref = (CONSTANT_Methodref_info *)cp_entry->info;
+
+    CONSTANT_Class_info *class_info = (CONSTANT_Class_info *)current_frame->constant_pool[mref->class_index]->info;
+    CONSTANT_Utf8_info *class_name_utf8 = (CONSTANT_Utf8_info *)current_frame->constant_pool[class_info->name_index]->info;
+
+    char *target_class_name = malloc(class_name_utf8->length + 1);
+    memcpy(target_class_name, class_name_utf8->bytes, class_name_utf8->length);
+    target_class_name[class_name_utf8->length] = '\0';
+
+    CONSTANT_NameAndType_info *nt = (CONSTANT_NameAndType_info *)current_frame->constant_pool[mref->name_and_type_index]->info;
+    CONSTANT_Utf8_info *name_utf8 = (CONSTANT_Utf8_info *)current_frame->constant_pool[nt->name_index]->info;
+    CONSTANT_Utf8_info *desc_utf8 = (CONSTANT_Utf8_info *)current_frame->constant_pool[nt->descriptor_index]->info;
+
+    char *method_name = malloc(name_utf8->length + 1);
+    memcpy(method_name, name_utf8->bytes, name_utf8->length);
+    method_name[name_utf8->length] = '\0';
+
+    char *method_desc = malloc(desc_utf8->length + 1);
+    memcpy(method_desc, desc_utf8->bytes, desc_utf8->length);
+    method_desc[desc_utf8->length] = '\0';
+
+    // Resolve a classe alvo e busca nela
+    ClassFile *target_class = method_area_resolve_class(current_frame->constant_pool, mref->class_index);
+
+    method_info *target = method_area_find_method(target_class, method_name, method_desc, 0);
+    if (target == NULL) {
+        fprintf(stderr, "[invokestatic] metodo '%s%s' nao encontrado em '%s'\n", method_name, method_desc, target_class_name);
+        exit(1);
+    }
+
+    Code_attribute *target_code = method_area_get_code(target_class, target);
+    if (target_code == NULL) {
+        fprintf(stderr, "[invokestatic] '%s' nao tem Code attribute\n", method_name);
+        exit(1);
+    }
+
+    uint16_t num_arg_slots = descriptor_count_arg_slots(method_desc, 0); // 0 = NÃO tem 'this'
+
+    JVMStackStatus status = frame_push_method(
+        stack, target_code, target_class->constant_pool,
+        target_class->constant_pool_count, num_arg_slots
+    );
+
+    if (status != JVM_STACK_OK) { exit(1); }
+
+    free(target_class_name); free(method_name); free(method_desc);
+}
+
+// Opcode: 0xB9
+void invokeinterface(Frame *current_frame, JVMStack *stack) {
+    // Lê os 2 bytes do índice da Constant Pool
+    uint16_t cp_idx = ((uint16_t)current_frame->code[current_frame->pc] << 8)
+                    |  (uint16_t)current_frame->code[current_frame->pc + 1];
+    
+    // Avança 4 bytes no PC (2 do índice + 1 de count + 1 do zero obrigatório)
+    current_frame->pc += 4;
+
+    cp_info *cp_entry = current_frame->constant_pool[cp_idx];
+    CONSTANT_InterfaceMethodref_info *imref = (CONSTANT_InterfaceMethodref_info *)cp_entry->info;
+
+    // Extrai o nome e descritor do método a partir da Interface
+    CONSTANT_NameAndType_info *nt = (CONSTANT_NameAndType_info *)current_frame->constant_pool[imref->name_and_type_index]->info;
+    CONSTANT_Utf8_info *name_utf8 = (CONSTANT_Utf8_info *)current_frame->constant_pool[nt->name_index]->info;
+    CONSTANT_Utf8_info *desc_utf8 = (CONSTANT_Utf8_info *)current_frame->constant_pool[nt->descriptor_index]->info;
+
+    char *method_name = malloc(name_utf8->length + 1);
+    memcpy(method_name, name_utf8->bytes, name_utf8->length);
+    method_name[name_utf8->length] = '\0';
+
+    char *method_desc = malloc(desc_utf8->length + 1);
+    memcpy(method_desc, desc_utf8->bytes, desc_utf8->length);
+    method_desc[desc_utf8->length] = '\0';
+
+    // Calcula quantos slots de argumentos esse método possui
+    uint16_t num_arg_slots = descriptor_count_arg_slots(method_desc, 1); 
+
+    // Espia a Pilha de Operandos para pegar a referência do objeto real.
+    // O objeto "this" sempre fica no fundo, antes de todos os argumentos.
+    uint32_t ref = current_frame->operand_stack[current_frame->sp - num_arg_slots];
+    
+    if (ref == 0) {
+        fprintf(stderr, "NullPointerException em invokeinterface\n");
+        exit(1);
+    }
+
+    Object *obj = (Object *)(uintptr_t)ref;
+    
+    // Pega a CLASSE REAL do objeto instanciado (Ex: soma_certo, em vez da Interface Somar)
+    ClassFile *actual_class = obj->class_ref;
+
+    // Busca o método real dentro dessa classe
+    method_info *target = method_area_find_method(actual_class, method_name, method_desc, 0);
+    if (target == NULL) {
+        fprintf(stderr, "[invokeinterface] metodo '%s%s' nao encontrado na classe real\n", method_name, method_desc);
+        exit(1);
+    }
+
+    Code_attribute *target_code = method_area_get_code(actual_class, target);
+    if (target_code == NULL) {
+        fprintf(stderr, "[invokeinterface] '%s' nao tem Code attribute\n", method_name);
+        exit(1);
+    }
+
+    // Empilha o novo Frame passando a Constant Pool da classe real
+    JVMStackStatus status = frame_push_method(
+        stack, target_code, actual_class->constant_pool,
+        actual_class->constant_pool_count, num_arg_slots
+    );
+
+    if (status != JVM_STACK_OK) { exit(1); }
+
+    free(method_name); free(method_desc);
+}
