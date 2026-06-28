@@ -1531,8 +1531,34 @@ void invokevirtual(Frame *frame, JVMStack *stack) {
             printf("%lld", (long long)val);
         } else if (m_desc[1] == 'L' || m_desc[1] == '[') {
             uint32_t ref = frame_pop_ref(frame);
-            if (ref == 0) printf("null");
-            else printf("[String/Objeto]");
+            if (ref == 0) {
+                printf("null");
+            } else if (strcmp(c_name, "java/io/PrintStream") == 0 && strncmp(m_desc, "(Ljava/lang/String;)V", 21) == 0) {
+                // Se for uma String real passada ao System.out,
+                // a referência guarda o índice do Utf8 na Constant Pool.
+                if (ref < frame->constant_pool_count && frame->constant_pool[ref] != NULL) {
+                    cp_info *cp_entry = frame->constant_pool[ref];
+                    
+                    // Se apontar para um String_info, precisamos dar mais um passo até o Utf8
+                    if (cp_entry->tag == 8) { // CONSTANT_String
+                        CONSTANT_String_info *str_info = (CONSTANT_String_info *)cp_entry->info;
+                        cp_entry = frame->constant_pool[str_info->string_index];
+                    }
+                    
+                    // Imprime os caracteres reais da String salvos na Constant Pool
+                    if (cp_entry->tag == 1) { // CONSTANT_Utf8
+                        CONSTANT_Utf8_info *utf8 = (CONSTANT_Utf8_info *)cp_entry->info;
+                        printf("%.*s", utf8->length, utf8->bytes);
+                    } else {
+                        printf("[Objeto:CP_%u]", ref);
+                    }
+                } else {
+                    // Caso seja um ponteiro de objeto real na memória (ex: instâncias do Belote)
+                    printf("[Objeto:%p]", (void*)(uintptr_t)ref);
+                }
+            } else {
+                printf("[Objeto/Referencia]");
+            }
         }
         
         // Remove a referência do próprio System.out da pilha! (Evita vazamento de memória)

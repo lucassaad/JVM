@@ -101,82 +101,74 @@ int main(int argc, char *argv[]) {
     } else if (is_interpreter) {
         printf("Iniciando modo Interpretador (Motor de Execucao)...\n");
         
-        // Código para o Interpretador
+        // Sobrescreve/Cria o arquivo de auditoria unificado
+        FILE *initial_log = fopen("execucao_jvm.txt", "w");
+        if (initial_log == NULL) {
+            fprintf(stderr, "Erro ao criar arquivo de dump 'execucao_jvm.txt'\n");
+            free(cf);
+            return 1;
+        }
 
         // Procura o método main
         method_info *main_method = method_area_find_method(cf, "main", "([Ljava/lang/String;)V", 0x0001 | 0x0008);
         if (main_method == NULL) {
             fprintf(stderr, "Erro: Metodo 'main' nao encontrado na classe.\n");
+            fprintf(initial_log, "FALHA: Metodo 'main' de entrada nao localizado.\n");
+            fclose(initial_log);
             free(cf);
             return 1;
         }
-        // prints para debug
-        printf("main encontrado\n");
-
 
         // Procura o atributo Code
         Code_attribute *code = method_area_get_code(cf, main_method);
         if (code == NULL) {
-            fprintf(stderr, "Erro: atributo Code nao encontrado.\n");
+            fprintf(stderr, "Erro: atributo Code do metodo main nao encontrado.\n");
+            fprintf(initial_log, "FALHA: Atributo 'Code' do entrypoint main ausente.\n");
+            fclose(initial_log);
             free(cf);
             return 1;
         }
-        // prints para debug
-        printf("Code encontrado\n");
-        printf("max_stack = %d\n", code->max_stack);
-        printf("max_locals = %d\n", code->max_locals);
-        printf("code_length = %d\n", code->code_length);
-        printf("primeiro opcode = 0x%02X\n", code->code[0]);
 
-        // Cria o primeiro Frame
+        // Registra metadados iniciais exclusivamente no arquivo de texto
+        fprintf(initial_log, "=======================================================\n");
+        fprintf(initial_log, "             DUMP DE EXECUCAO DA JVM                   \n");
+        fprintf(initial_log, "=======================================================\n");
+        fprintf(initial_log, "Classe Inicial Alvo : %s\n", argv[2]);
+        fprintf(initial_log, "Metodo Ponto de Entrada: main([Ljava/lang/String;)V\n");
+        fprintf(initial_log, "Configuracao do Frame Inicial:\n");
+        fprintf(initial_log, "  -> max_stack   = %d\n", code->max_stack);
+        fprintf(initial_log, "  -> max_locals  = %d\n", code->max_locals);
+        fprintf(initial_log, "  -> code_length = %d bytes\n", code->code_length);
+        fprintf(initial_log, "=======================================================\n\n");
+        fclose(initial_log); // Fecha temporariamente para o execute_engine reabrir em append
+
+        // Cria o frame principal
         Frame *frame = frame_create(code, cf->constant_pool, cf->constant_pool_count);
-
         if (frame == NULL) {
-            fprintf(stderr, "Erro ao criar Frame.\n");
-            free(cf);
+            fprintf(stderr, "Erro ao alocar Frame inicial da JVM.\n");
             return 1;
         }
-        // prints para debug
-        printf("Frame criado\n");
-        printf("PC = %u\n", frame->pc);
-        printf("Primeiro opcode pelo frame = 0x%02X\n", frame->code[0]);
 
-        // Inicializa a JVM Stack
+        // Inicializa a pilha de execução
         JVMStack stack;
-
-        jvm_stack_init(&stack, 1024 * 1024); // 1 MB
+        jvm_stack_init(&stack, 1024 * 1024); // Limite de 1MB
 
         uint32_t frame_size = jvm_stack_frame_size(code->max_locals, code->max_stack);
-
-        // Empilha o primeiro Frame
         JVMStackStatus status = jvm_stack_push(&stack, frame, frame_size);
 
-        //prints para debug
-        printf("Frames = %d\n", stack.frame_count);
-        printf("Current frame = %p\n", (void*)stack.current_frame); 
-
         if (status != JVM_STACK_OK) {
-            fprintf(stderr, "Erro ao inicializar JVM Stack.\n");
+            fprintf(stderr, "Erro crítico de estouro ao empilhar Frame na Stack.\n");
             frame_destroy(frame);
+            free(cf);
             return 1;
         }
 
-        // Inicia o Fetch-Decode-Execute
+        printf("Execucao iniciada. Todo o rastro tecnico sera enviado para 'execucao_jvm.txt'\n\n");
+
+        // Executa o motor em modo silencioso para logs técnicos
         execute_engine(&stack, cf);
-
-
-    }
-
-    // =======================================================
-    // 4. LIMPEZA DA MEMÓRIA (Executada em ambos os fluxos)
-    // =======================================================
-    for (int i = 1; i < cf->constant_pool_count; i++) {
-        cp_info *entry = cf->constant_pool[i];
-        if (entry != NULL) {
-            if (entry->tag == 5 || entry->tag == 6) i++; 
-            free(entry->info);
-            free(entry);
-        }
+        
+        printf("\nExecucao concluida com sucesso. Arquivo 'execucao_jvm.txt' atualizado.\n");
     }
 
     free(cf->constant_pool);

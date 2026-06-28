@@ -1,26 +1,36 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "interpreter.h"
 #include "instruction.h"
-#include <string.h>
-#include "class_file.h"
-#include "constant_pool.h"
-#include "attributes.h"
+#include "jvm_stack.h"
 
-void execute_engine(JVMStack *stack, ClassFile *cf)  {
-    // print para debug
-    printf("Entrou no execute_engine\n");
+// Declaração do ponteiro de arquivo global para auditoria interna
+FILE *exec_log = NULL;
 
-    // Laço contínuo de execução
+void execute_engine(JVMStack *stack, ClassFile *cf) {
+    (void)cf;
+
+    // Abre o arquivo unificado para o rastro completo da JVM
+    exec_log = fopen("execucao_jvm.txt", "a");
+    if (exec_log == NULL) {
+        fprintf(stderr, "Aviso: Nao foi possivel abrir 'execucao_jvm.txt' para gravacao.\n");
+    }
+
+    if (exec_log) {
+        fprintf(exec_log, "=== INICIANDO MOTOR DE DESPACHO (FETCH-DECODE-EXECUTE) ===\n");
+    }
+
     while (!jvm_stack_is_empty(stack)) {
-        
         Frame *current_frame = stack->current_frame;
-
-        // Lógica de busca (Fetch) do byte atual usando o PC
         uint8_t opcode = current_frame->code[current_frame->pc];
-        //printf("PC=%u OPCODE=0x%02X\n", current_frame->pc - 1, opcode);
 
-        // Atualização do PC para o opcode (1 byte). 
+        // Toda a auditoria técnica de bytecode vai EXCLUSIVAMENTE para o arquivo .txt
+        if (exec_log != NULL) {
+            fprintf(exec_log, "[PC: %04u] Opcode: 0x%02X | SP: %u | Frames Ativos: %d\n", 
+                    current_frame->pc, opcode, current_frame->sp, stack->frame_count);
+        }
+
         current_frame->pc++;
 
         // Motor de Despacho com switch(opcode)
@@ -226,4 +236,11 @@ void execute_engine(JVMStack *stack, ClassFile *cf)  {
             pc_register = stack->current_frame->pc;
         }
     } 
+
+    if (exec_log != NULL) {
+        fprintf(exec_log, "\n=== EXECUCAO DO PROGRAMA CONCLUIDA COM SUCESSO ===\n");
+        fclose(exec_log);
+        exec_log = NULL; // Reseta o ponteiro de segurança
+    }
+
 } 

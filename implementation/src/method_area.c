@@ -5,6 +5,9 @@
 #include "constant_pool.h"  
 #include "reader.h"
 
+
+extern FILE *exec_log;
+
 // inicia a Method Area global
 MethodArea method_area = {
     NULL,
@@ -113,7 +116,10 @@ ClassFile *method_area_resolve_class(cp_info **constant_pool, uint16_t index) {
 
     if (cf != NULL) return cf;
 
-    printf("Carregando classe %s...\n", class_name);
+    // Substitua o printf antigo por este condicional:
+    if (exec_log != NULL) {
+        fprintf(exec_log, "[Method Area] Carregando classe dinamicamente: %s...\n", class_name);
+    }
 
     cf = method_area_load(class_name);
 
