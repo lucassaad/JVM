@@ -7,3 +7,6 @@ bin/
 *.out
 *.txt
 *zip
+
+# Pastas de build geradas pelo Doxygen
+/docs
