@@ -1017,3 +1017,113 @@ void if_icmple(Frame *frame) {
     int32_t value1 = frame_pop_int(frame);
     if (value1 <= value2) frame->pc = opcode_pc + (int32_t)offset;
 }
+
+//  INSTRUÇÕES DE CONVERSÃO DE TIPOS
+// Opcode: 0x86
+void i2f(Frame *frame) {
+    int32_t val = frame_pop_int(frame);
+    frame_push_float(frame, (float)val);
+}
+// Opcode: 0x87
+void i2d(Frame *frame) {
+    int32_t val = frame_pop_int(frame);
+    frame_push_double(frame, (double)val);
+}
+// Opcode: 0x8B
+void f2i(Frame *frame) {
+    float val = frame_pop_float(frame);
+    frame_push_int(frame, (int32_t)val);
+}
+// Opcode: 0x8E
+void d2i(Frame *frame) {
+    double val = frame_pop_double(frame);
+    frame_push_int(frame, (int32_t)val);
+}
+// Opcode: 0x91
+void i2b(Frame *frame) {
+    int32_t val = frame_pop_int(frame);
+    frame_push_int(frame, (int32_t)(int8_t)val); 
+}
+// Opcode: 0x92
+void i2c(Frame *frame) {
+    int32_t val = frame_pop_int(frame);
+    frame_push_int(frame, (int32_t)(uint16_t)val); 
+}
+// Opcode: 0x93
+void i2s(Frame *frame) {
+    int32_t val = frame_pop_int(frame);
+    frame_push_int(frame, (int32_t)(int16_t)val); 
+}
+
+// INSTRUÇÕES RELATIVAS A ATRIBUTOS ESTÁTICOS 
+// Opcode: 0xB2
+void getstatic(Frame *frame) {
+    uint16_t indexbyte = (frame->code[frame->pc] << 8) | frame->code[frame->pc + 1];
+    frame->pc += 2;
+    (void)indexbyte;
+    
+    frame_push_ref(frame, 0);
+}
+
+// Opcode: 0xB3
+void putstatic(Frame *frame) {
+    uint16_t indexbyte = (frame->code[frame->pc] << 8) | frame->code[frame->pc + 1];
+    frame->pc += 2;
+    (void)indexbyte;
+    
+    frame_pop_raw(frame);
+}
+
+// INSTRUÇÃO DE INVOCAÇÃO DE MÉTODOS
+// Opcode: 0xB6
+void invokevirtual(Frame *frame) {
+    uint16_t indexbyte = (frame->code[frame->pc] << 8) | frame->code[frame->pc + 1];
+    frame->pc += 2;
+    
+    // Acessa o Methodref
+    cp_info *methodref_cp = frame->constant_pool[indexbyte];
+    CONSTANT_Methodref_info *methodref = (CONSTANT_Methodref_info *)methodref_cp->info;
+    
+    // Resolve o Nome da Classe alvo
+    cp_info *class_cp = frame->constant_pool[methodref->class_index];
+    CONSTANT_Class_info *class_info = (CONSTANT_Class_info *)class_cp->info;
+    CONSTANT_Utf8_info *class_name = (CONSTANT_Utf8_info *)frame->constant_pool[class_info->name_index]->info;
+    
+    // Resolve o NameAndType (Nome do método e Descritor)
+    cp_info *nt_cp = frame->constant_pool[methodref->name_and_type_index];
+    CONSTANT_NameAndType_info *nt = (CONSTANT_NameAndType_info *)nt_cp->info;
+    CONSTANT_Utf8_info *method_name = (CONSTANT_Utf8_info *)frame->constant_pool[nt->name_index]->info;
+    CONSTANT_Utf8_info *method_desc = (CONSTANT_Utf8_info *)frame->constant_pool[nt->descriptor_index]->info;
+    
+    if (strncmp((char *)class_name->bytes, "java/io/PrintStream", class_name->length) == 0 &&
+       (strncmp((char *)method_name->bytes, "println", method_name->length) == 0 ||
+        strncmp((char *)method_name->bytes, "print", method_name->length) == 0)) {
+
+        if (strncmp((char *)method_desc->bytes, "(I)V", 4) == 0) {
+            int32_t val = frame_pop_int(frame);
+            printf("%d", val);
+        } 
+        else if (strncmp((char *)method_desc->bytes, "(F)V", 4) == 0) {
+            float val = frame_pop_float(frame);
+            printf("%f", val);
+        }
+        else if (strncmp((char *)method_desc->bytes, "(D)V", 4) == 0) {
+            double val = frame_pop_double(frame);
+            printf("%lf", val);
+        }
+        else if (strncmp((char *)method_desc->bytes, "(C)V", 4) == 0) {
+            int32_t val = frame_pop_int(frame);
+            printf("%c", (char)val);
+        }
+        
+        if (strncmp((char *)method_name->bytes, "println", 7) == 0) {
+            printf("\n");
+        }
+        
+        frame_pop_ref(frame);
+        
+    } else {
+        fprintf(stderr, "UnsupportedOperationException: invokevirtual nao mockado para outro objeto.\n");
+        exit(1);
+    }
+}
