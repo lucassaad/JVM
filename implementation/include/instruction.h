@@ -12,6 +12,7 @@ void isub(Frame *frame);
 void imul(Frame *frame);
 void idiv(Frame *frame);
 void irem(Frame *frame);
+void iinc(Frame *frame);
 
 // Aritmética de Longs (64 bits)
 void ladd(Frame *frame);
@@ -157,9 +158,13 @@ void getstatic(Frame *frame);
 void putstatic(Frame *frame);
 
 // Instrução de Invocação 
-void invokevirtual(Frame *frame);
+void invokevirtual(Frame *frame, JVMStack *stack);
 void invokespecial(Frame *frame, JVMStack *stack, ClassFile *cf);
 void invokestatic(Frame *frame, JVMStack *stack, ClassFile *cf);
 void invokeinterface(Frame *frame, JVMStack *stack);
+
+// Instruções relativas a NULL
+void ifnull(Frame *frame);
+void ifnonnull(Frame *frame);
 
 #endif

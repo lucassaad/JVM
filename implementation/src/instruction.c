@@ -49,6 +49,16 @@ void irem(Frame *frame) {
     frame_push_int(frame, val1 % val2);
 }
 
+// Opcode: 0x84
+void iinc(Frame *frame) {
+    uint8_t index = frame->code[frame->pc++];
+    
+    int8_t const_val = (int8_t)frame->code[frame->pc++];
+    
+    int32_t val = frame_get_local_int(frame, index);
+    frame_set_local_int(frame, index, val + (int32_t)const_val);
+}
+
 // INSTRUÇÕES MATEMÁTICAS - LONGS (64 BITS)
 // Opcode: 0x61
 void ladd(Frame *frame) {
@@ -1057,75 +1067,238 @@ void i2s(Frame *frame) {
 
 // INSTRUÇÕES RELATIVAS A ATRIBUTOS ESTÁTICOS 
 // Opcode: 0xB2
-void getstatic(Frame *frame) {
-    uint16_t indexbyte = (frame->code[frame->pc] << 8) | frame->code[frame->pc + 1];
-    frame->pc += 2;
-    (void)indexbyte;
+void getstatic(Frame *current_frame) {
+    uint16_t cp_idx = ((uint16_t)current_frame->code[current_frame->pc] << 8)
+                    |  (uint16_t)current_frame->code[current_frame->pc + 1];
+    current_frame->pc += 2;
+
+    cp_info *cp_entry = current_frame->constant_pool[cp_idx];
+    CONSTANT_Fieldref_info *fref = (CONSTANT_Fieldref_info *)cp_entry->info;
+
+    CONSTANT_Class_info *class_info = (CONSTANT_Class_info *)current_frame->constant_pool[fref->class_index]->info;
+    CONSTANT_Utf8_info *class_name_utf8 = (CONSTANT_Utf8_info *)current_frame->constant_pool[class_info->name_index]->info;
+
+    char *target_class_name = malloc(class_name_utf8->length + 1);
+    memcpy(target_class_name, class_name_utf8->bytes, class_name_utf8->length);
+    target_class_name[class_name_utf8->length] = '\0';
+
+    CONSTANT_NameAndType_info *nt = (CONSTANT_NameAndType_info *)current_frame->constant_pool[fref->name_and_type_index]->info;
+    CONSTANT_Utf8_info *name_utf8 = (CONSTANT_Utf8_info *)current_frame->constant_pool[nt->name_index]->info;
+    CONSTANT_Utf8_info *desc_utf8 = (CONSTANT_Utf8_info *)current_frame->constant_pool[nt->descriptor_index]->info;
+
+    char *field_name = malloc(name_utf8->length + 1);
+    memcpy(field_name, name_utf8->bytes, name_utf8->length);
+    field_name[name_utf8->length] = '\0';
+
+    char *field_desc = malloc(desc_utf8->length + 1);
+    memcpy(field_desc, desc_utf8->bytes, desc_utf8->length);
+    field_desc[desc_utf8->length] = '\0';
+
+    // MANTÉM O HACK APENAS PARA O SYSTEM.OUT DO JAVA
+    if (strcmp(target_class_name, "java/lang/System") == 0 && strcmp(field_name, "out") == 0) {
+        frame_push_ref(current_frame, 0); 
+        free(target_class_name); free(field_name); free(field_desc);
+        return;
+    }
+
+    // PARA VARIÁVEIS ESTÁTICAS REAIS (Ex: Arrays do Belote):
+    ClassFile *target_class = method_area_resolve_class(current_frame->constant_pool, fref->class_index);
+    field_info *target_field = NULL;
     
-    frame_push_ref(frame, 0);
+    // Busca a variável estática dentro do ClassFile resolvido
+    for (int i = 0; i < target_class->fields_count; i++) {
+        CONSTANT_Utf8_info *fname = (CONSTANT_Utf8_info *)target_class->constant_pool[target_class->fields[i].name_index]->info;
+        CONSTANT_Utf8_info *fdesc = (CONSTANT_Utf8_info *)target_class->constant_pool[target_class->fields[i].descriptor_index]->info;
+        
+        if (fname->length == name_utf8->length && strncmp((char*)fname->bytes, field_name, fname->length) == 0 &&
+            fdesc->length == desc_utf8->length && strncmp((char*)fdesc->bytes, field_desc, fdesc->length) == 0) {
+            target_field = &target_class->fields[i];
+            break;
+        }
+    }
+
+    if (target_field == NULL) {
+        fprintf(stderr, "NoSuchFieldError: %s.%s\n", target_class_name, field_name);
+        exit(1);
+    }
+
+    // Identifica o tamanho do dado e joga na pilha de operandos
+    char first_char = field_desc[0];
+    if (first_char == 'J' || first_char == 'D') { 
+        uint64_t raw = target_field->static_value;
+        frame_push_raw(current_frame, (uint32_t)(raw >> 32));      
+        frame_push_raw(current_frame, (uint32_t)(raw & 0xFFFFFFFFu)); 
+    } else { // 32 bits (int, float, referências)
+        frame_push_raw(current_frame, (uint32_t)target_field->static_value);
+    }
+
+    free(target_class_name); free(field_name); free(field_desc);
 }
 
 // Opcode: 0xB3
-void putstatic(Frame *frame) {
-    uint16_t indexbyte = (frame->code[frame->pc] << 8) | frame->code[frame->pc + 1];
-    frame->pc += 2;
-    (void)indexbyte;
+void putstatic(Frame *current_frame) {
+    uint16_t cp_idx = ((uint16_t)current_frame->code[current_frame->pc] << 8)
+                    |  (uint16_t)current_frame->code[current_frame->pc + 1];
+    current_frame->pc += 2;
+
+    cp_info *cp_entry = current_frame->constant_pool[cp_idx];
+    CONSTANT_Fieldref_info *fref = (CONSTANT_Fieldref_info *)cp_entry->info;
+
+    CONSTANT_Class_info *class_info = (CONSTANT_Class_info *)current_frame->constant_pool[fref->class_index]->info;
+    CONSTANT_Utf8_info *class_name_utf8 = (CONSTANT_Utf8_info *)current_frame->constant_pool[class_info->name_index]->info;
+
+    char *target_class_name = malloc(class_name_utf8->length + 1);
+    memcpy(target_class_name, class_name_utf8->bytes, class_name_utf8->length);
+    target_class_name[class_name_utf8->length] = '\0';
+
+    CONSTANT_NameAndType_info *nt = (CONSTANT_NameAndType_info *)current_frame->constant_pool[fref->name_and_type_index]->info;
+    CONSTANT_Utf8_info *name_utf8 = (CONSTANT_Utf8_info *)current_frame->constant_pool[nt->name_index]->info;
+    CONSTANT_Utf8_info *desc_utf8 = (CONSTANT_Utf8_info *)current_frame->constant_pool[nt->descriptor_index]->info;
+
+    char *field_name = malloc(name_utf8->length + 1);
+    memcpy(field_name, name_utf8->bytes, name_utf8->length);
+    field_name[name_utf8->length] = '\0';
+
+    char *field_desc = malloc(desc_utf8->length + 1);
+    memcpy(field_desc, desc_utf8->bytes, desc_utf8->length);
+    field_desc[desc_utf8->length] = '\0';
+
+    if (strcmp(target_class_name, "java/lang/System") == 0 && strcmp(field_name, "out") == 0) {
+        frame_pop_raw(current_frame); 
+        free(target_class_name); free(field_name); free(field_desc);
+        return;
+    }
+
+    ClassFile *target_class = method_area_resolve_class(current_frame->constant_pool, fref->class_index);
+    field_info *target_field = NULL;
     
-    frame_pop_raw(frame);
+    for (int i = 0; i < target_class->fields_count; i++) {
+        CONSTANT_Utf8_info *fname = (CONSTANT_Utf8_info *)target_class->constant_pool[target_class->fields[i].name_index]->info;
+        CONSTANT_Utf8_info *fdesc = (CONSTANT_Utf8_info *)target_class->constant_pool[target_class->fields[i].descriptor_index]->info;
+        
+        if (fname->length == name_utf8->length && strncmp((char*)fname->bytes, field_name, fname->length) == 0 &&
+            fdesc->length == desc_utf8->length && strncmp((char*)fdesc->bytes, field_desc, fdesc->length) == 0) {
+            target_field = &target_class->fields[i];
+            break;
+        }
+    }
+
+    if (target_field == NULL) {
+        fprintf(stderr, "NoSuchFieldError: %s.%s\n", target_class_name, field_name);
+        exit(1);
+    }
+
+    // Recupera o dado da pilha e salva em memória
+    char first_char = field_desc[0];
+    if (first_char == 'J' || first_char == 'D') { 
+        uint32_t low = frame_pop_raw(current_frame);
+        uint32_t high = frame_pop_raw(current_frame);
+        uint64_t raw = ((uint64_t)high << 32) | (uint64_t)low;
+        target_field->static_value = raw;
+    } else { // 32 bits
+        uint32_t raw = frame_pop_raw(current_frame);
+        target_field->static_value = (uint64_t)raw;
+    }
+
+    free(target_class_name); free(field_name); free(field_desc);
 }
 
 // INSTRUÇÃO DE INVOCAÇÃO DE MÉTODOS
 // Opcode: 0xB6
-void invokevirtual(Frame *frame) {
-    uint16_t indexbyte = (frame->code[frame->pc] << 8) | frame->code[frame->pc + 1];
+void invokevirtual(Frame *frame, JVMStack *stack) {
+    uint16_t cp_idx = ((uint16_t)frame->code[frame->pc] << 8) | (uint16_t)frame->code[frame->pc + 1];
     frame->pc += 2;
-    
-    // Acessa o Methodref
-    cp_info *methodref_cp = frame->constant_pool[indexbyte];
-    CONSTANT_Methodref_info *methodref = (CONSTANT_Methodref_info *)methodref_cp->info;
-    
-    // Resolve o Nome da Classe alvo
-    cp_info *class_cp = frame->constant_pool[methodref->class_index];
-    CONSTANT_Class_info *class_info = (CONSTANT_Class_info *)class_cp->info;
+
+    cp_info *cp_entry = frame->constant_pool[cp_idx];
+    CONSTANT_Methodref_info *mref = (CONSTANT_Methodref_info *)cp_entry->info;
+
+    CONSTANT_Class_info *class_info = (CONSTANT_Class_info *)frame->constant_pool[mref->class_index]->info;
     CONSTANT_Utf8_info *class_name = (CONSTANT_Utf8_info *)frame->constant_pool[class_info->name_index]->info;
-    
-    // Resolve o NameAndType (Nome do método e Descritor)
-    cp_info *nt_cp = frame->constant_pool[methodref->name_and_type_index];
-    CONSTANT_NameAndType_info *nt = (CONSTANT_NameAndType_info *)nt_cp->info;
+
+    CONSTANT_NameAndType_info *nt = (CONSTANT_NameAndType_info *)frame->constant_pool[mref->name_and_type_index]->info;
     CONSTANT_Utf8_info *method_name = (CONSTANT_Utf8_info *)frame->constant_pool[nt->name_index]->info;
     CONSTANT_Utf8_info *method_desc = (CONSTANT_Utf8_info *)frame->constant_pool[nt->descriptor_index]->info;
-    
-    if (strncmp((char *)class_name->bytes, "java/io/PrintStream", class_name->length) == 0 &&
-       (strncmp((char *)method_name->bytes, "println", method_name->length) == 0 ||
-        strncmp((char *)method_name->bytes, "print", method_name->length) == 0)) {
 
-        if (strncmp((char *)method_desc->bytes, "(I)V", 4) == 0) {
-            int32_t val = frame_pop_int(frame);
-            printf("%d", val);
-        } 
-        else if (strncmp((char *)method_desc->bytes, "(F)V", 4) == 0) {
-            float val = frame_pop_float(frame);
-            printf("%f", val);
-        }
-        else if (strncmp((char *)method_desc->bytes, "(D)V", 4) == 0) {
-            double val = frame_pop_double(frame);
-            printf("%lf", val);
-        }
-        else if (strncmp((char *)method_desc->bytes, "(C)V", 4) == 0) {
-            int32_t val = frame_pop_int(frame);
-            printf("%c", (char)val);
+    char *c_name = malloc(class_name->length + 1);
+    memcpy(c_name, class_name->bytes, class_name->length);
+    c_name[class_name->length] = '\0';
+
+    char *m_name = malloc(method_name->length + 1);
+    memcpy(m_name, method_name->bytes, method_name->length);
+    m_name[method_name->length] = '\0';
+
+    char *m_desc = malloc(method_desc->length + 1);
+    memcpy(m_desc, method_desc->bytes, method_desc->length);
+    m_desc[method_desc->length] = '\0';
+
+    // MOCK DO SYSTEM.OUT.PRINTLN (Mantém funcionando perfeitamente)
+    if (strcmp(c_name, "java/io/PrintStream") == 0 && (strcmp(m_name, "println") == 0 || strcmp(m_name, "print") == 0)) {
+        
+        // Remove o argumento da pilha e imprime
+        if (strncmp(m_desc, "(I)V", 4) == 0) {
+            printf("%d", frame_pop_int(frame));
+        } else if (strncmp(m_desc, "(F)V", 4) == 0) {
+            printf("%f", frame_pop_float(frame));
+        } else if (strncmp(m_desc, "(D)V", 4) == 0) {
+            printf("%lf", frame_pop_double(frame));
+        } else if (strncmp(m_desc, "(C)V", 4) == 0) {
+            printf("%c", (char)frame_pop_int(frame));
+        } else if (m_desc[1] == 'L' || m_desc[1] == '[') {
+            uint32_t ref = frame_pop_ref(frame);
+            if (ref == 0) printf("null");
+            else printf("[String/Objeto]");
         }
         
-        if (strncmp((char *)method_name->bytes, "println", 7) == 0) {
+        // Remove a referência do próprio System.out da pilha! (Evita vazamento de memória)
+        frame_pop_ref(frame);
+
+        if (strcmp(m_name, "println") == 0) {
             printf("\n");
         }
         
-        frame_pop_ref(frame);
-        
-    } else {
-        fprintf(stderr, "UnsupportedOperationException: invokevirtual nao mockado para outro objeto.\n");
+        free(c_name); free(m_name); free(m_desc);
+        return;
+    }
+
+    // INVOCAÇÃO REAL PARA OS OUTROS OBJETOS (Dynamic Dispatch)
+    
+    // Conta os argumentos + 1 (para o slot do "this")
+    uint16_t num_arg_slots = descriptor_count_arg_slots(m_desc, 1); 
+
+    // Espia a pilha para pegar a referência do objeto instanciado ("this")
+    uint32_t ref = frame->operand_stack[frame->sp - num_arg_slots];
+    
+    if (ref == 0) {
+        fprintf(stderr, "NullPointerException em invokevirtual (%s.%s)\n", c_name, m_name);
         exit(1);
     }
+
+    // Extrai a classe Real de dentro do objeto
+    Object *obj = (Object *)(uintptr_t)ref;
+    ClassFile *actual_class = obj->class_ref;
+
+    // Procura o método dentro da classe real
+    method_info *target = method_area_find_method(actual_class, m_name, m_desc, 0);
+    if (target == NULL) {
+        fprintf(stderr, "[invokevirtual] metodo '%s%s' nao encontrado em '%s'\n", m_name, m_desc, c_name);
+        exit(1);
+    }
+
+    Code_attribute *target_code = method_area_get_code(actual_class, target);
+    if (target_code == NULL) {
+        fprintf(stderr, "[invokevirtual] '%s' nao tem Code attribute\n", m_name);
+        exit(1);
+    }
+
+    // Cria o novo Frame e desvia o PC para ele!
+    JVMStackStatus status = frame_push_method(
+        stack, target_code, actual_class->constant_pool,
+        actual_class->constant_pool_count, num_arg_slots
+    );
+
+    if (status != JVM_STACK_OK) { exit(1); }
+
+    free(c_name); free(m_name); free(m_desc);
 }
 
 // Opcode: 0xB7
@@ -1318,4 +1491,34 @@ void invokeinterface(Frame *current_frame, JVMStack *stack) {
     if (status != JVM_STACK_OK) { exit(1); }
 
     free(method_name); free(method_desc);
+}
+
+// Instruções relativas a NULL
+// Opcode: 0xC6
+void ifnull(Frame *frame) {
+    // Lê o offset (2 bytes)
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    
+    // Pega a referência do objeto instanciado na pilha
+    uint32_t ref = frame_pop_ref(frame);
+    
+    if (ref == 0) { 
+        // Volta 1 posição para calcular a partir do opcode original
+        frame->pc = (frame->pc - 1) + offset;
+    } else { 
+        frame->pc += 2;
+    }
+}
+
+// Opcode: 0xC7
+void ifnonnull(Frame *frame) {
+    int16_t offset = (int16_t)((frame->code[frame->pc] << 8) | frame->code[frame->pc + 1]);
+    
+    uint32_t ref = frame_pop_ref(frame);
+    
+    if (ref != 0) {
+        frame->pc = (frame->pc - 1) + offset;
+    } else {
+        frame->pc += 2;
+    }
 }

@@ -222,17 +222,25 @@ void *constant_pool_reader(cp_tags tag, FILE *file)
         }
         length = byteswap_u2(length);
 
-        uint8_t bytes[length];
-        if (fread(&bytes, sizeof(bytes), 1, file) != 1)
-        {
-            perror("Error while reading constant_pool");
-            return NULL;
-        }
-
-        CONSTANT_Utf8_info *entry = malloc(sizeof(CONSTANT_Utf8_info) + length);
+        // Aloca espaço para a struct + tamanho da string + 1 para o '\0' de segurança
+        CONSTANT_Utf8_info *entry = malloc(sizeof(CONSTANT_Utf8_info) + length + 1);
         entry->tag = tag;
         entry->length = length;
-        memcpy(entry->bytes, bytes, length);
+
+        // Só faz a leitura se o tamanho for maior que 0
+        if (length > 0)
+        {
+            // Lê blocos de 1 byte, 'length' vezes. Deve retornar 'length'.
+            if (fread(entry->bytes, 1, length, file) != length)
+            {
+                perror("Error while reading constant_pool");
+                free(entry);
+                return NULL;
+            }
+        }
+        
+        // Garante a terminação da string em C (mesmo se for vazia)
+        entry->bytes[length] = '\0';
 
         return entry;
     }

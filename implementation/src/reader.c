@@ -357,6 +357,7 @@ int read_classfile(ClassFile *cf, FILE *file) {
 
             // Leitura dos atributos do field
             cf->fields[i].attributes = read_attributes_array(cf, cf->fields[i].attributes_count, file);
+            cf->fields[i].static_value = 0;
         }
 
     } else {

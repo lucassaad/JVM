@@ -87,6 +87,7 @@ void execute_engine(JVMStack *stack, ClassFile *cf)  {
             case 0x68: imul(current_frame); break;
             case 0x6C: idiv(current_frame); break;
             case 0x70: irem(current_frame); break;
+            case 0x84: iinc(current_frame); break;
 
             case 0x61: ladd(current_frame); break;
             case 0x65: lsub(current_frame); break;
@@ -174,10 +175,13 @@ void execute_engine(JVMStack *stack, ClassFile *cf)  {
             case 0xB3: putstatic(current_frame); break;
 
             // INSTRUÇÃO DE INVOCAÇÃO DE MÉTODOS
-            case 0xB6: invokevirtual(current_frame); break;
+            case 0xB6: invokevirtual(current_frame, stack); break;
             case 0xB7: invokespecial(current_frame, stack, cf); break;
             case 0xB8: invokestatic(current_frame, stack, cf); break;
             case 0xB9: invokeinterface(current_frame, stack); break;
+
+            case 0xC6: ifnull(current_frame); break;
+            case 0xC7: ifnonnull(current_frame); break;
 
             // DEFAULT (Instrução não mapeada)
             default:

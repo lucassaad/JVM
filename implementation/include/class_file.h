@@ -23,6 +23,7 @@ typedef struct {
     uint16_t descriptor_index;
     uint16_t attributes_count;
     attribute_info *attributes;
+    uint64_t static_value; 
 } field_info;
 
 // Estrutura de um Método
