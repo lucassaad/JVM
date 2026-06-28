@@ -18,7 +18,7 @@ void execute_engine(JVMStack *stack, ClassFile *cf)  {
 
         // Lógica de busca (Fetch) do byte atual usando o PC
         uint8_t opcode = current_frame->code[current_frame->pc];
-        printf("PC=%u OPCODE=0x%02X\n", current_frame->pc - 1, opcode);
+        //printf("PC=%u OPCODE=0x%02X\n", current_frame->pc - 1, opcode);
 
         // Atualização do PC para o opcode (1 byte). 
         current_frame->pc++;
@@ -34,6 +34,9 @@ void execute_engine(JVMStack *stack, ClassFile *cf)  {
             case 0x06: iconst_3(current_frame); break;
             case 0x07: iconst_4(current_frame); break;
             case 0x08: iconst_5(current_frame); break;
+            case 0x0B: fconst_0(current_frame); break;
+            case 0x0C: fconst_1(current_frame); break;
+            case 0x0D: fconst_2(current_frame); break;
             case 0x0E: dconst_0(current_frame); break; 
             case 0x0F: dconst_1(current_frame); break;
             case 0x10: bipush(current_frame); break;
@@ -67,6 +70,12 @@ void execute_engine(JVMStack *stack, ClassFile *cf)  {
             case 0x28: dload_2(current_frame); break;
             case 0x29: dload_3(current_frame); break;
 
+            // Instruções Long
+            case 0x1E: lload_0(current_frame); break;
+            case 0x1F: lload_1(current_frame); break;
+            case 0x20: lload_2(current_frame); break;
+            case 0x21: lload_3(current_frame); break;
+
             // Stores de Double (Implícitos)
             case 0x47: dstore_0(current_frame); break;
             case 0x48: dstore_1(current_frame); break;
@@ -93,6 +102,7 @@ void execute_engine(JVMStack *stack, ClassFile *cf)  {
             // INSTRUÇÕES DE MANIPULAÇÃO DA PILHA
             case 0x57: pop_inst(current_frame); break; 
             case 0x59: dup(current_frame); break;
+            case 0x5C: dup2(current_frame); break;
             case 0x5F: swap(current_frame); break;
 
             // INSTRUÇÕES MATEMÁTICAS
@@ -128,6 +138,7 @@ void execute_engine(JVMStack *stack, ClassFile *cf)  {
             case 0xBC: newarray(current_frame); break;
             case 0xBD: anewarray(current_frame); break; 
             case 0xBE: arraylength(current_frame); break;
+            case 0xC5: multianewarray_inst(current_frame); break;
             
             case 0x2E: iaload(current_frame); break; // int
             case 0x2F: laload(current_frame); break; // long
@@ -161,6 +172,8 @@ void execute_engine(JVMStack *stack, ClassFile *cf)  {
             
             // INSTRUÇÕES DE DESVIO
             case 0xA7: goto_inst(current_frame); break;
+            case 0xAA: tableswitch(current_frame); break;
+            case 0xAB: lookupswitch(current_frame); break;
 
             case 0x99: ifeq(current_frame); break;
             case 0x9A: ifne(current_frame); break;

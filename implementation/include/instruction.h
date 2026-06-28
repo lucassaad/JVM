@@ -40,6 +40,7 @@ void iushr(Frame *frame);
 void newarray(Frame *frame);
 void anewarray(Frame *frame);
 void arraylength(Frame *frame);
+void multianewarray_inst(Frame *frame);
 void iaload(Frame *frame);
 void aaload(Frame *frame);
 void iastore(Frame *frame);
@@ -62,6 +63,11 @@ void dload_0(Frame *frame);
 void dload_1(Frame *frame);
 void dload_2(Frame *frame);
 void dload_3(Frame *frame);
+
+void lload_0(Frame *frame);
+void lload_1(Frame *frame);
+void lload_2(Frame *frame);
+void lload_3(Frame *frame);
 
 // Double Stores
 void dstore_0(Frame *frame);
@@ -96,6 +102,9 @@ void iconst_2(Frame *frame);
 void iconst_3(Frame *frame);
 void iconst_4(Frame *frame);
 void iconst_5(Frame *frame);
+void fconst_0(Frame *frame);
+void fconst_1(Frame *frame);
+void fconst_2(Frame *frame);
 void bipush(Frame *frame);
 void sipush(Frame *frame);
 void dconst_0(Frame *frame);
@@ -140,6 +149,7 @@ void astore_3(Frame *frame);
 // Instruções de Manipulação da Pilha
 void pop_inst(Frame *frame); 
 void dup(Frame *frame);
+void dup2(Frame *frame);
 void swap(Frame *frame);
 
 // Instrução de Desvio incondicional
@@ -160,6 +170,7 @@ void if_icmplt(Frame *frame);
 void if_icmpge(Frame *frame);
 void if_icmpgt(Frame *frame);
 void if_icmple(Frame *frame);
+void if_icmplt(Frame *frame);
 void dcmpl(Frame *frame);
 void dcmpg(Frame *frame);
 
@@ -188,5 +199,9 @@ void invokeinterface(Frame *frame, JVMStack *stack);
 // Instruções relativas a NULL
 void ifnull(Frame *frame);
 void ifnonnull(Frame *frame);
+
+// Tableswitch e Lookupswitch
+void tableswitch(Frame *frame);
+void lookupswitch(Frame *frame);
 
 #endif
