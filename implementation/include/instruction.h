@@ -143,4 +143,20 @@ void if_icmpge(Frame *frame);
 void if_icmpgt(Frame *frame);
 void if_icmple(Frame *frame);
 
+// Instruções de Conversão de Tipos
+void i2f(Frame *frame);
+void i2d(Frame *frame);
+void f2i(Frame *frame);
+void d2i(Frame *frame);
+void i2b(Frame *frame);
+void i2c(Frame *frame);
+void i2s(Frame *frame);
+
+// Instruções Relativas a Atributos Estáticos 
+void getstatic(Frame *frame);
+void putstatic(Frame *frame);
+
+// Instrução de Invocação de Métodos 
+void invokevirtual(Frame *frame);
+
 #endif

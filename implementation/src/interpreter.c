@@ -98,6 +98,22 @@ void execute_engine(JVMStack *stack) {
             case 0xA3: if_icmpgt(current_frame); break;
             case 0xA4: if_icmple(current_frame); break;
 
+            //  INSTRUÇÕES DE CONVERSÃO DE TIPOS
+            case 0x86: i2f(current_frame); break;
+            case 0x87: i2d(current_frame); break;
+            case 0x8B: f2i(current_frame); break;
+            case 0x8E: d2i(current_frame); break;
+            case 0x91: i2b(current_frame); break;
+            case 0x92: i2c(current_frame); break;
+            case 0x93: i2s(current_frame); break;
+
+            // INSTRUÇÕES RELATIVAS A ATRIBUTOS ESTÁTICOS
+            case 0xB2: getstatic(current_frame); break;
+            case 0xB3: putstatic(current_frame); break;
+
+            // INSTRUÇÃO DE INVOCAÇÃO DE MÉTODOS
+            case 0xB6: invokevirtual(current_frame); break;
+
             // DEFAULT (Instrução não mapeada)
             default:
                 fprintf(stderr, "Opcode desconhecido: 0x%02X na posicao %d\n", opcode, current_frame->pc - 1);
