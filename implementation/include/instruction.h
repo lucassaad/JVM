@@ -57,6 +57,21 @@ void baload(Frame *frame);
 void caload(Frame *frame);
 void saload(Frame *frame);
 
+// Double Loads
+void dload_0(Frame *frame);
+void dload_1(Frame *frame);
+void dload_2(Frame *frame);
+void dload_3(Frame *frame);
+
+// Double Stores
+void dstore_0(Frame *frame);
+void dstore_1(Frame *frame);
+void dstore_2(Frame *frame);
+void dstore_3(Frame *frame);
+
+// Negação Matemática de Double
+void dneg(Frame *frame);
+
 void fastore(Frame *frame);
 void bastore(Frame *frame);
 void castore(Frame *frame);

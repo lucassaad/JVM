@@ -59,6 +59,18 @@ void execute_engine(JVMStack *stack, ClassFile *cf)  {
             case 0x2C: aload_2(current_frame); break;
             case 0x2D: aload_3(current_frame); break;
 
+            // Loads de Double (Implícitos)
+            case 0x26: dload_0(current_frame); break;
+            case 0x27: dload_1(current_frame); break;
+            case 0x28: dload_2(current_frame); break;
+            case 0x29: dload_3(current_frame); break;
+
+            // Stores de Double (Implícitos)
+            case 0x47: dstore_0(current_frame); break;
+            case 0x48: dstore_1(current_frame); break;
+            case 0x49: dstore_2(current_frame); break;
+            case 0x4A: dstore_3(current_frame); break;
+
             // INSTRUÇÕES DE ARMAZENAMENTO
             case 0x36: istore(current_frame); break;
             case 0x37: lstore(current_frame); break;
@@ -94,6 +106,7 @@ void execute_engine(JVMStack *stack, ClassFile *cf)  {
             case 0x69: lmul(current_frame); break;
             case 0x6D: execute_ldiv(current_frame); break; // ldiv
             case 0x71: lrem(current_frame); break;
+            case 0x77: dneg(current_frame); break; 
 
             case 0x63: dadd(current_frame); break;
             case 0x67: dsub(current_frame); break;

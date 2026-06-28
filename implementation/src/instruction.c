@@ -422,6 +422,47 @@ void saload(Frame *frame) {
     frame_push_int(frame, value);
 }
 
+// OPCODES IMPLÍCITOS E MATEMÁTICA DE DOUBLES
+// Opcodes 0x26 a 0x29 (dload_n)
+void dload_0(Frame *frame) { 
+    frame_push_double(frame, frame_get_local_double(frame, 0)); 
+}
+
+void dload_1(Frame *frame) { 
+    frame_push_double(frame, frame_get_local_double(frame, 1)); 
+}
+
+void dload_2(Frame *frame) { 
+    frame_push_double(frame, frame_get_local_double(frame, 2)); 
+}
+
+void dload_3(Frame *frame) { 
+    frame_push_double(frame, frame_get_local_double(frame, 3)); 
+}
+
+// Opcodes 0x47 a 0x4A (dstore_n)
+void dstore_0(Frame *frame) { 
+    frame_set_local_double(frame, 0, frame_pop_double(frame)); 
+}
+
+void dstore_1(Frame *frame) { 
+    frame_set_local_double(frame, 1, frame_pop_double(frame)); 
+}
+
+void dstore_2(Frame *frame) { 
+    frame_set_local_double(frame, 2, frame_pop_double(frame)); 
+}
+
+void dstore_3(Frame *frame) { 
+    frame_set_local_double(frame, 3, frame_pop_double(frame)); 
+}
+
+// Opcode 0x77 (dneg)
+void dneg(Frame *frame) {
+    double val = frame_pop_double(frame);
+    frame_push_double(frame, -val); 
+}
+
 // INSTRUÇÕES DE ESCRITA (STORE) PARA DEMAIS ARRAYS PRIMITIVOS
 // Opcode: 0x51
 void fastore(Frame *frame) {
