@@ -1,0 +1,22 @@
+var searchData=
+[
+  ['pc_0',['pc',['../structFrame.html#a91e50d2091184efb52b6d7c0c21fd4b2',1,'Frame']]],
+  ['pc_5fregister_1',['pc_register',['../jvm__stack_8c.html#abad5eaa40730864334458efcc95323a9',1,'pc_register:&#160;jvm_stack.c'],['../jvm__stack_8h.html#abad5eaa40730864334458efcc95323a9',1,'pc_register:&#160;jvm_stack.c']]],
+  ['pool_2',['pool',['../index.html#autotoc_md43',1,'Constant Pool'],['../index.html#autotoc_md47',1,'Referencias Dentro da Constant Pool'],['../index.html#autotoc_md44',1,'Tags da Constant Pool']]],
+  ['pop_5finst_3',['pop_inst',['../instruction_8c.html#a2df7def72ea6b0039c806341bb5ea6b6',1,'pop_inst(Frame *frame):&#160;instruction.c'],['../instruction_8h.html#a2df7def72ea6b0039c806341bb5ea6b6',1,'pop_inst(Frame *frame):&#160;instruction.c']]],
+  ['previous_5fframe_4',['previous_frame',['../structFrame.html#a6128df806e13e094304d5ac6ba584535',1,'Frame']]],
+  ['print_5fattributes_5',['print_attributes',['../viewer_8c.html#a81a7d9f2e2842490fbe75cba46dc630d',1,'print_attributes(FILE *out, ClassFile *cf):&#160;viewer.c'],['../viewer_8h.html#a81a7d9f2e2842490fbe75cba46dc630d',1,'print_attributes(FILE *out, ClassFile *cf):&#160;viewer.c']]],
+  ['print_5fconstant_5fpool_6',['print_constant_pool',['../viewer_8h.html#ac969f4b46475b656bb7ac549fbeaa6a4',1,'print_constant_pool(FILE *out, ClassFile *cf):&#160;viewer.c'],['../viewer_8c.html#ac969f4b46475b656bb7ac549fbeaa6a4',1,'print_constant_pool(FILE *out, ClassFile *cf):&#160;viewer.c']]],
+  ['print_5ffield_5faccess_5fflags_7',['print_field_access_flags',['../viewer_8c.html#ad6a459cfdccceee68f26df2459582a89',1,'print_field_access_flags(FILE *out, uint16_t flags):&#160;viewer.c'],['../viewer_8h.html#ad6a459cfdccceee68f26df2459582a89',1,'print_field_access_flags(FILE *out, uint16_t flags):&#160;viewer.c']]],
+  ['print_5ffields_8',['print_fields',['../viewer_8c.html#afb1b3febb330017da0ec5b50e33cc19b',1,'print_fields(FILE *out, ClassFile *cf):&#160;viewer.c'],['../viewer_8h.html#afb1b3febb330017da0ec5b50e33cc19b',1,'print_fields(FILE *out, ClassFile *cf):&#160;viewer.c']]],
+  ['print_5fgeneral_5finformation_9',['print_general_information',['../viewer_8h.html#a36c6db32502a86d3deece02dd64dd8d7',1,'print_general_information(FILE *out, ClassFile *cf):&#160;viewer.c'],['../viewer_8c.html#a36c6db32502a86d3deece02dd64dd8d7',1,'print_general_information(FILE *out, ClassFile *cf):&#160;viewer.c']]],
+  ['print_5finterfaces_10',['print_interfaces',['../viewer_8c.html#a59de28fe2917af4ba960c0749c87bbff',1,'print_interfaces(FILE *out, ClassFile *cf):&#160;viewer.c'],['../viewer_8h.html#a59de28fe2917af4ba960c0749c87bbff',1,'print_interfaces(FILE *out, ClassFile *cf):&#160;viewer.c']]],
+  ['print_5fmethod_5faccess_5fflags_11',['print_method_access_flags',['../viewer_8h.html#a025cc241555175ae51423242ed9615be',1,'print_method_access_flags(FILE *out, uint16_t flags):&#160;viewer.c'],['../viewer_8c.html#a025cc241555175ae51423242ed9615be',1,'print_method_access_flags(FILE *out, uint16_t flags):&#160;viewer.c']]],
+  ['print_5fmethods_12',['print_methods',['../viewer_8h.html#a4bba320e0ac840588ffdb4cc851bc7c8',1,'print_methods(FILE *out, ClassFile *cf):&#160;viewer.c'],['../viewer_8c.html#a4bba320e0ac840588ffdb4cc851bc7c8',1,'print_methods(FILE *out, ClassFile *cf):&#160;viewer.c']]],
+  ['print_5fspecific_5fattribute_5finfo_13',['print_specific_attribute_info',['../viewer_8c.html#a48dd05a6be1ed216a786908b0af45e36',1,'print_specific_attribute_info(FILE *out, ClassFile *cf, attribute_info *attr):&#160;viewer.c'],['../viewer_8h.html#a48dd05a6be1ed216a786908b0af45e36',1,'print_specific_attribute_info(FILE *out, ClassFile *cf, attribute_info *attr):&#160;viewer.c']]],
+  ['print_5futf8_5finfo_14',['print_utf8_info',['../viewer_8c.html#a6db90c9cab4c6feba51325500f40efe7',1,'viewer.c']]],
+  ['programa_15',['📋 Fluxo Completo do Programa',['../index.html#autotoc_md27',1,'']]],
+  ['projeto_16',['projeto',['../index.html#autotoc_md15',1,'📂 Arquitetura do Projeto'],['../index.html#autotoc_md36',1,'Objetivo do Projeto']]],
+  ['putfield_17',['putfield',['../instruction_8c.html#a1f70eb5115368b0fd7f00aecd503a6d7',1,'putfield(Frame *frame):&#160;instruction.c'],['../instruction_8h.html#a1f70eb5115368b0fd7f00aecd503a6d7',1,'putfield(Frame *frame):&#160;instruction.c']]],
+  ['putstatic_18',['putstatic',['../instruction_8c.html#a52cee2e5f8aff4900cfbeca769f7ec5c',1,'putstatic(Frame *current_frame):&#160;instruction.c'],['../instruction_8h.html#ac285cd0226f77438ae9bf4244cbe1efa',1,'putstatic(Frame *frame):&#160;instruction.c']]]
+];

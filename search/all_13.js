@@ -1,0 +1,25 @@
+var searchData=
+[
+  ['read_5fattributes_5farray_0',['read_attributes_array',['../reader_8c.html#a07515f042b5740fd5c4d931746d932b4',1,'read_attributes_array(ClassFile *cf, uint16_t count, FILE *file):&#160;reader.c'],['../reader_8h.html#a07515f042b5740fd5c4d931746d932b4',1,'read_attributes_array(ClassFile *cf, uint16_t count, FILE *file):&#160;reader.c']]],
+  ['read_5fclassfile_1',['read_classfile',['../reader_8c.html#a495fffefae4cd560deebed13c14e0c97',1,'read_classfile(ClassFile *cf, FILE *file):&#160;reader.c'],['../reader_8h.html#a495fffefae4cd560deebed13c14e0c97',1,'read_classfile(ClassFile *cf, FILE *file):&#160;reader.c']]],
+  ['read_5fspecific_5fattribute_5finfo_2',['read_specific_attribute_info',['../attributes_8h.html#a64fb6d8c48e7304bbfd5faafefc40526',1,'read_specific_attribute_info(ClassFile *cf, FILE *file, const char *attr_name, uint32_t attr_length):&#160;attributes.c'],['../attributes_8c.html#a64fb6d8c48e7304bbfd5faafefc40526',1,'read_specific_attribute_info(ClassFile *cf, FILE *file, const char *attr_name, uint32_t attr_length):&#160;attributes.c']]],
+  ['reader_2ec_3',['reader.c',['../reader_8c.html',1,'']]],
+  ['reader_2eh_4',['reader.h',['../reader_8h.html',1,'']]],
+  ['readme_2emd_5',['README.md',['../README_8md.html',1,'']]],
+  ['referências_6',['📚 Referências',['../index.html#autotoc_md60',1,'']]],
+  ['reference_5findex_7',['reference_index',['../structCONSTANT__MethodHandle__info.html#ae4dc14b47509676ba404508cea2fa322',1,'CONSTANT_MethodHandle_info']]],
+  ['reference_5fkind_8',['reference_kind',['../structCONSTANT__MethodHandle__info.html#a6902a5a0bafcc6771a80cfb946db4802',1,'CONSTANT_MethodHandle_info']]],
+  ['referencias_20dentro_20da_20constant_20pool_9',['Referencias Dentro da Constant Pool',['../index.html#autotoc_md47',1,'']]],
+  ['representação_20de_20objetos_20e_20arrays_10',['Representação de Objetos e Arrays',['../index.html#autotoc_md25',1,'']]],
+  ['representação_20de_20tipos_11',['🔧 Endianness e Representação de Tipos',['../index.html#autotoc_md31',1,'']]],
+  ['resolve_5ffield_5foffset_12',['resolve_field_offset',['../method__area_8c.html#a3f80825cd26559c44a80feb8fbe98e16',1,'resolve_field_offset(ClassFile *class_ref, cp_info **frame_cp, uint16_t indexbyte):&#160;method_area.c'],['../method__area_8h.html#a3f80825cd26559c44a80feb8fbe98e16',1,'resolve_field_offset(ClassFile *class_ref, cp_info **frame_cp, uint16_t indexbyte):&#160;method_area.c']]],
+  ['resumo_20dos_20comandos_20tt_20make_20tt_13',['Resumo dos comandos &lt;tt&gt;make&lt;/tt&gt;',['../index.html#autotoc_md12',1,'']]],
+  ['retorno_20de_20métodos_14',['Chamada e Retorno de Métodos',['../index.html#autotoc_md24',1,'']]],
+  ['return_5fdouble_15',['RETURN_DOUBLE',['../frame_8h.html#a36a419f0b50a0c1d2d4cf712e0ba64ccaeeccf6015329dafbfa183a3e314f9189',1,'frame.h']]],
+  ['return_5ffloat_16',['RETURN_FLOAT',['../frame_8h.html#a36a419f0b50a0c1d2d4cf712e0ba64cca211a73dada247ca60b9f329df5e4703d',1,'frame.h']]],
+  ['return_5fint_17',['RETURN_INT',['../frame_8h.html#a36a419f0b50a0c1d2d4cf712e0ba64cca114ad2d6a26eb0d01e010e6e265e00ad',1,'frame.h']]],
+  ['return_5flong_18',['RETURN_LONG',['../frame_8h.html#a36a419f0b50a0c1d2d4cf712e0ba64cca13a6ca2b6604cfbec10e7b14b0ed3557',1,'frame.h']]],
+  ['return_5fref_19',['RETURN_REF',['../frame_8h.html#a36a419f0b50a0c1d2d4cf712e0ba64cca2d696430259f36429941e04d76190c69',1,'frame.h']]],
+  ['return_5fvoid_20',['RETURN_VOID',['../frame_8h.html#a36a419f0b50a0c1d2d4cf712e0ba64ccab2c1f4d0d5edca8cb4339ec1ac50f538',1,'frame.h']]],
+  ['returntype_21',['ReturnType',['../frame_8h.html#a36a419f0b50a0c1d2d4cf712e0ba64cc',1,'frame.h']]]
+];

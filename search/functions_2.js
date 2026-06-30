@@ -1,0 +1,10 @@
+var searchData=
+[
+  ['caload_0',['caload',['../instruction_8c.html#a6ed2242b170aeedcbb2e9d8657131d87',1,'caload(Frame *frame):&#160;instruction.c'],['../instruction_8h.html#a6ed2242b170aeedcbb2e9d8657131d87',1,'caload(Frame *frame):&#160;instruction.c']]],
+  ['castore_1',['castore',['../instruction_8c.html#a382e04d108ae04ba54249a661393bfae',1,'castore(Frame *frame):&#160;instruction.c'],['../instruction_8h.html#a382e04d108ae04ba54249a661393bfae',1,'castore(Frame *frame):&#160;instruction.c']]],
+  ['check_5fconstant_5fpool_5freferences_2',['check_constant_pool_references',['../constant__pool_8c.html#a0b17a551a16fa351e6f0ce56470f843c',1,'check_constant_pool_references(ClassFile *cf):&#160;constant_pool.c'],['../constant__pool_8h.html#a0b17a551a16fa351e6f0ce56470f843c',1,'check_constant_pool_references(ClassFile *cf):&#160;constant_pool.c']]],
+  ['constant_5fpool_5freader_3',['constant_pool_reader',['../constant__pool_8c.html#a536c92f9c05996c031d5df6b42885fbd',1,'constant_pool_reader(cp_tags tag, FILE *file):&#160;constant_pool.c'],['../constant__pool_8h.html#a536c92f9c05996c031d5df6b42885fbd',1,'constant_pool_reader(cp_tags tag, FILE *file):&#160;constant_pool.c']]],
+  ['count_5fobject_5ffields_4',['count_object_fields',['../java__types_8c.html#a7a2909dfe43e5a4f73b4879f49ec18eb',1,'count_object_fields(ClassFile *class_ref):&#160;java_types.c'],['../java__types_8h.html#a7a2909dfe43e5a4f73b4879f49ec18eb',1,'count_object_fields(ClassFile *class_ref):&#160;java_types.c']]],
+  ['create_5fnew_5farray_5',['create_new_array',['../java__types_8c.html#aa430fd789a173e5edec4f8855cc657a4',1,'create_new_array(int32_t length, ArrayType type):&#160;java_types.c'],['../java__types_8h.html#aa430fd789a173e5edec4f8855cc657a4',1,'create_new_array(int32_t length, ArrayType type):&#160;java_types.c']]],
+  ['create_5fnew_5fobject_6',['create_new_object',['../java__types_8c.html#a220cbb366cce835d2a4cc3a481811bc0',1,'create_new_object(ClassFile *class_ref):&#160;java_types.c'],['../java__types_8h.html#a220cbb366cce835d2a4cc3a481811bc0',1,'create_new_object(ClassFile *class_ref):&#160;java_types.c']]]
+];
