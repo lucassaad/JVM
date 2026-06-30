@@ -94,11 +94,12 @@ make clean
 
 ### Flags de compilação
 
-O projeto compila com `-std=c99 -Wall -Wextra -g`:
+O projeto compila com `-std=c99 -Wall -Wextra -g -m32`:
 
 - **`-std=c99`**: Garante portabilidade e diz ao compilador para usar a versão C99 da linguagem C (padrão da disciplina).
 - **`-Wall` / `-Wextra`**: Ativa todos os avisos do compilador, prevenindo bugs silenciosos.
 - **`-g`**: Inclui símbolos de debug.
+- **`-m32`**: Força a geração de um executável de 32 bits, independentemente da máquina ser de 64 bits. No contexto desta JVM, isso garante que os endereços de memória (ponteiros) tenham 32 bits e caibam perfeitamente nas variáveis uint32_t da Pilha de Operandos, resolvendo o problema de truncamento que causava o Segmentation Fault.
 
 ---
 
