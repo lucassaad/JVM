@@ -16,7 +16,7 @@ else
 endif
 
 CC       := gcc
-CFLAGS   := -std=c99 -Wall -Wextra -g
+CFLAGS   := -std=c99 -Wall -Wextra -g -m32
 
 SRC_DIR  := src
 INC_DIR  := include
