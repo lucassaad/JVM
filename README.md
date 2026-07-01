@@ -81,9 +81,9 @@ make run-leitor FILE=exemplos/fibonacci.class
 
 ```bash
 # Com um arquivo específico (É essencial que todos arquivos .class estejam na pasta exemplos/)
-make run FILE=exemplos/fatorial.class
-make run FILE=exemplos/fibonacci.class
-make run FILE=exemplos/double_aritmetica.class
+make run-interpreter FILE=exemplos/fatorial.class
+make run-interpreter FILE=exemplos/fibonacci.class
+make run-interpreter FILE=exemplos/double_aritmetica.class
 ```
 
 ### 4. Limpar arquivos de compilação
