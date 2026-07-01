@@ -52,12 +52,8 @@ run-leitor: all
 run-interpreter: all
 	.$(call FIX_PATH,/$(TARGET)) -i $(FILE)
 
-# Target padrao focado no objetivo final do projeto (Interpretador)
-run: run-interpreter
-
 .PHONY: all clean run run-leitor run-interpreter
 # make            : Apenas compila o projeto gerando o binário na pasta bin/.
-# make run        : Compila o projeto e inicia a execução no modo Interpretador (padrão do projeto).
 # make run-leitor : Compila o projeto e executa a ferramenta de análise estática (Leitor/Exibidor).
 # make run-interpreter : Compila o projeto e executa a máquina virtual (Interpretador/Motor de Execução).
 # make clean      : Apaga completamente as pastas de lixo de compilação (obj/ e bin/).

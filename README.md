@@ -57,20 +57,14 @@ make
 ### 2. Executar o Leitor/Exibidor
 
 ```bash
-# Com o arquivo padrão (Main.class)
-make run-leitor
-
-# Com um arquivo específico
+# Com um arquivo específico (É essencial que todos arquivos .class estejam na pasta exemplos/)
 make run-leitor FILE=exemplos/fibonacci.class
 ```
 
 ### 3. Executar o Interpretador
 
 ```bash
-# Com o arquivo padrão (Main.class)
-make run
-
-# Com um arquivo específico
+# Com um arquivo específico (É essencial que todos arquivos .class estejam na pasta exemplos/)
 make run FILE=exemplos/fatorial.class
 make run FILE=exemplos/fibonacci.class
 make run FILE=exemplos/double_aritmetica.class
@@ -87,9 +81,8 @@ make clean
 | Comando | Descrição |
 |---|---|
 | `make` | Apenas compila, gerando o binário em `bin/`. |
-| `make run` | Compila e executa no modo Interpretador (padrão). |
 | `make run-leitor` | Compila e executa no modo Leitor/Exibidor. |
-| `make run-interpreter` | Equivalente a `make run`. |
+| `make run-interpreter` | Compila e executa o Interpretador. |
 | `make clean` | Remove as pastas `obj/` e `bin/`. |
 
 ### Flags de compilação
@@ -100,6 +93,17 @@ O projeto compila com `-std=c99 -Wall -Wextra -g -m32`:
 - **`-Wall` / `-Wextra`**: Ativa todos os avisos do compilador, prevenindo bugs silenciosos.
 - **`-g`**: Inclui símbolos de debug.
 - **`-m32`**: Força a geração de um executável de 32 bits, independentemente da máquina ser de 64 bits. No contexto desta JVM, isso garante que os endereços de memória (ponteiros) tenham 32 bits e caibam perfeitamente nas variáveis uint32_t da Pilha de Operandos, resolvendo o problema de truncamento que causava o Segmentation Fault.
+
+### ⚠️ Observação Crítica sobre a Arquitetura de 32 Bits (`-m32`)
+
+A flag **`-m32`** é um pilar arquitetônico fundamental para a corretude desta implementação. Ela força o GCC a compilar a JVM em modo **x86 nativo (32 bits)**, independentemente de o sistema hospedeiro rodar em uma arquitetura de 64 bits.
+
+> 🌐 **Nota para usuários Linux (Ubuntu/Debian):**
+> Caso ocorra um erro de compilação relacionado a bibliotecas ausentes de 32 bits (*multilib*), instale o pacote de compatibilidade rodando o seguinte comando no terminal do sistema:
+>
+> ```bash
+> sudo apt-get update && sudo apt-get install gcc-multilib g++-multilib
+> ```
 
 ---
 
