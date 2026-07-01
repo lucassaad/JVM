@@ -6,6 +6,22 @@ O programa opera em dois modos distintos: um **Leitor/Exibidor** estático que d
 
 ---
 
+## 🏗️ Arquitetura e Diagrama de Blocos
+
+O projeto foi cuidadosamente modularizado para separar as responsabilidades entre a leitura dos arquivos binários, o gerenciamento de memória e o motor de execução. O diagrama abaixo ilustra o fluxo de comunicação e as dependências entre os principais módulos do sistema:
+
+![Diagrama de Blocos da JVM](implementation/midia/diagrama_de_blocos.png)
+
+### 🧩 Visão Geral dos Módulos
+
+* **Ponto de Entrada (`main.c`):** Responsável por orquestrar o programa, fazendo o *parse* dos argumentos da linha de comando e despachando o fluxo para o modo Leitor ou Interpretador.
+* **Análise e Leitura (Utils):** Conjunto de módulos (`reader.c`, `viewer.c`, `instruction_viewer.c`) encarregados de realizar o *parsing* seguro da estrutura do `.class` e fornecer sua representação visual (Disassembler).
+* **Motor de Execução (Core):** O coração da máquina virtual. O `interpreter.c` gerencia o ciclo *Fetch-Decode-Execute*, enquanto o `instruction.c` centraliza a lógica de implementação de cada *opcode* da especificação.
+* **Áreas de Memória:** Módulos que mantêm o estado dinâmico do programa em tempo de execução:
+  * **Method Area (`method_area.c`):** Cache dinâmico de classes carregadas.
+  * **JVM Stack & Frames (`jvm_stack.c`, `frame.c`):** Gerenciamento da pilha de execução de métodos e pilha de operandos.
+  * **Heap Genérica (`java_types.c`):** Alocação e controle de objetos e arrays em memória nativa.
+
 ## 🎯 Funcionalidades
 
 ### Modo Leitor/Exibidor (`-l`)
