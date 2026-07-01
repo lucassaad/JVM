@@ -10,7 +10,7 @@ O programa opera em dois modos distintos: um **Leitor/Exibidor** estático que d
 
 O projeto foi cuidadosamente modularizado para separar as responsabilidades entre a leitura dos arquivos binários, o gerenciamento de memória e o motor de execução. O diagrama abaixo ilustra o fluxo de comunicação e as dependências entre os principais módulos do sistema:
 
-![Diagrama de Blocos da JVM](implementation/midia/diagrama_de_blocos.png)
+<img src="https://raw.githubusercontent.com/lucassaad/JVM/main/implementation/midia/diagrama_de_blocos.png" width="800"/>
 
 ### 🧩 Visão Geral dos Módulos
 
